@@ -154,7 +154,7 @@ protected:
     void rearrangeHandlers(CCArray* pArray);
     CCTouchHandler* findHandler(CCArray* pArray, CCTouchDelegate *pDelegate);
 
-protected:
+public:
      CCArray* m_pTargetedHandlers;
      CCArray* m_pStandardHandlers;
 

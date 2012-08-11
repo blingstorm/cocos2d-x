@@ -257,6 +257,7 @@ void CCTextureCache::addImageAsync(const char *path, CCObject *target, SEL_CallF
     // optimization
 
     std::string pathKey = path;
+    CCFileUtils::sharedFileUtils()->removeSuffixFromFile(pathKey);
 
     pathKey = CCFileUtils::sharedFileUtils()->fullPathFromRelativePath(pathKey.c_str());
     texture = (CCTexture2D*)m_pTextures->objectForKey(pathKey.c_str());
@@ -399,6 +400,8 @@ CCTexture2D * CCTextureCache::addImage(const char * path)
 
     // remove possible -HD suffix to prevent caching the same image twice (issue #1040)
     std::string pathKey = path;
+    ccResolutionType resolution = kCCResolutionUnknown;
+    CCFileUtils::sharedFileUtils()->removeSuffixFromFile(pathKey);
 
     pathKey = CCFileUtils::sharedFileUtils()->fullPathFromRelativePath(pathKey.c_str());
     texture = (CCTexture2D*)m_pTextures->objectForKey(pathKey.c_str());
@@ -443,7 +446,7 @@ CCTexture2D * CCTextureCache::addImage(const char * path)
                 texture = new CCTexture2D();
                 
                 if( texture &&
-                    texture->initWithImage(&image) )
+                    texture->initWithImage(&image, resolution) )
                 {
 #if CC_ENABLE_CACHE_TEXTURE_DATA
                     // cache the texture file name
@@ -474,6 +477,7 @@ CCTexture2D* CCTextureCache::addPVRTCImage(const char* path, int bpp, bool hasAl
     CCTexture2D * texture;
 
     std::string temp(path);
+    CCFileUtils::sharedFileUtils()->removeSuffixFromFile(temp);
     
     if ( (texture = (CCTexture2D*)m_pTextures->objectForKey(temp.c_str())) )
     {
@@ -510,6 +514,8 @@ CCTexture2D * CCTextureCache::addPVRImage(const char* path)
 
     CCTexture2D* texture = NULL;
     std::string key(path);
+    // remove possible -HD suffix to prevent caching the same image twice (issue #1040)
+    CCFileUtils::sharedFileUtils()->removeSuffixFromFile(key);
     
     if( (texture = (CCTexture2D*)m_pTextures->objectForKey(key.c_str())) ) 
     {
@@ -562,7 +568,7 @@ CCTexture2D* CCTextureCache::addUIImage(CCImage *image, const char *key)
 
         // prevents overloading the autorelease pool
         texture = new CCTexture2D();
-        texture->initWithImage(image);
+        texture->initWithImage(image, kCCResolutionUnknown);
 
         if(key && texture)
         {
@@ -884,7 +890,8 @@ void VolatileTexture::reloadAllTextures()
             break;
         case kImage:
             {
-                vt->texture->initWithImage(vt->uiImage);
+                vt->texture->initWithImage(vt->uiImage,
+                                           kCCResolutionUnknown);
             }
             break;
         default:

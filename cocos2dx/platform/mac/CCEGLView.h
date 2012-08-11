@@ -39,9 +39,12 @@ public:
     CCEGLView();
     virtual ~CCEGLView();
 
+    CCSize  getSize();
     bool    isOpenGLReady();
+    bool    canSetContentScaleFactor();
     bool    isIpad();
-    virtual bool setContentScaleFactor(float contentScaleFactor);
+    void    setContentScaleFactor(float contentScaleFactor);
+	virtual CCSize  getFrameSize();
     void    end();
     void    swapBuffers();
 

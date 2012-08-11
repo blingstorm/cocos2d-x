@@ -31,6 +31,9 @@ THE SOFTWARE.
 
 NS_CC_BEGIN;
 
+class CCRect;
+class CCApplication;
+
 class CC_DLL CCApplication : public CCApplicationProtocol
 {
 public:
@@ -66,7 +69,6 @@ public:
         virtual ccLanguageType getCurrentLanguage();
 		
 	    virtual bool isIpad();
-        virtual bool isIos();
 
 protected:
         static CCApplication * sm_pSharedApplication;

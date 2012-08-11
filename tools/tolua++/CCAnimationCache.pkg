@@ -7,7 +7,4 @@ class CCAnimationCache : public CCObject
 
     static CCAnimationCache* sharedAnimationCache(void);
     static void purgeSharedAnimationCache(void);
-
-	void addAnimationsWithDictionary(CCDictionary* dictionary);
-	void addAnimationsWithFile(const char* plist);
 };

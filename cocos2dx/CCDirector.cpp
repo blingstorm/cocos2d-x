@@ -56,15 +56,6 @@ THE SOFTWARE.
 #include "CCEGLView.h"
 #include <string>
 
-/**
- Position of the FPS
- 
- Default: 0,0 (bottom-left corner)
- */
-#ifndef CC_DIRECTOR_STATS_POSITION
-#define CC_DIRECTOR_STATS_POSITION CCDirector::sharedDirector()->getVisibleOrigin()
-#endif
-
 using namespace std;
 
 unsigned int g_uNumberOfDraws = 0;
@@ -474,30 +465,6 @@ CCSize CCDirector::getWinSizeInPixels()
     return m_obWinSizeInPixels;
 }
 
-CCSize CCDirector::getVisibleSize()
-{
-    if (m_pobOpenGLView)
-    {
-        return m_pobOpenGLView->getVisibleSize();
-    }
-    else 
-    {
-        return CCSizeZero;
-    }
-}
-
-CCPoint CCDirector::getVisibleOrigin()
-{
-    if (m_pobOpenGLView)
-    {
-        return m_pobOpenGLView->getVisibleOrigin();
-    }
-    else 
-    {
-        return CCPointZero;
-    }
-}
-
 void CCDirector::reshapeProjection(const CCSize& newWindowSize)
 {
     CC_UNUSED_PARAM(newWindowSize);
@@ -766,17 +733,16 @@ void CCDirector::createStatsLabel()
 {
     if( m_pFPSLabel && m_pSPFLabel ) 
     {
-        //CCTexture2D *texture = m_pFPSLabel->getTexture();
+        CCTexture2D *texture = m_pFPSLabel->getTexture();
 
         CC_SAFE_RELEASE_NULL(m_pFPSLabel);
         CC_SAFE_RELEASE_NULL(m_pSPFLabel);
         CC_SAFE_RELEASE_NULL(m_pDrawsLabel);
-       // CCTextureCache::sharedTextureCache()->removeTexture(texture);
+        CCTextureCache::sharedTextureCache()->removeTexture(texture);
 
         CCFileUtils::sharedFileUtils()->purgeCachedEntries();
     }
 
-    /*
     CCTexture2DPixelFormat currentFormat = CCTexture2D::defaultAlphaPixelFormat();
     CCTexture2D::setDefaultAlphaPixelFormat(kCCTexture2DPixelFormat_RGBA4444);
     m_pFPSLabel = new CCLabelAtlas();
@@ -785,23 +751,12 @@ void CCDirector::createStatsLabel()
     m_pSPFLabel->initWithString("0.000", "fps_images.png", 12, 32, '.');
     m_pDrawsLabel = new CCLabelAtlas();
     m_pDrawsLabel->initWithString("000", "fps_images.png", 12, 32, '.');
-     */
-    m_pFPSLabel = CCLabelTTF::create("00.0", "Arial", 24);
-    m_pFPSLabel->retain();
-    m_pSPFLabel = CCLabelTTF::create("0.000", "Arial", 24);
-    m_pSPFLabel->retain();
-    m_pDrawsLabel = CCLabelTTF::create("000", "Arial", 24);
-    m_pDrawsLabel->retain();
 
-    //CCTexture2D::setDefaultAlphaPixelFormat(currentFormat);
+    CCTexture2D::setDefaultAlphaPixelFormat(currentFormat);
 
-
-    CCSize contentSize = m_pDrawsLabel->getContentSize();
-    m_pDrawsLabel->setPosition(ccpAdd(ccp(contentSize.width/2, contentSize.height/2 + 40), CC_DIRECTOR_STATS_POSITION));
-    contentSize = m_pSPFLabel->getContentSize();
-    m_pSPFLabel->setPosition(ccpAdd(ccp(contentSize.width/2, contentSize.height/2 + 20), CC_DIRECTOR_STATS_POSITION));
-    contentSize = m_pFPSLabel->getContentSize();
-    m_pFPSLabel->setPosition(ccpAdd(ccp(contentSize.width/2, contentSize.height/2), CC_DIRECTOR_STATS_POSITION));
+    m_pDrawsLabel->setPosition( ccpAdd( ccp(0,34), CC_DIRECTOR_STATS_POSITION ) );
+    m_pSPFLabel->setPosition( ccpAdd( ccp(0,17), CC_DIRECTOR_STATS_POSITION ) );
+    m_pFPSLabel->setPosition( CC_DIRECTOR_STATS_POSITION );
 }
 
 
@@ -811,7 +766,16 @@ void CCDirector::createStatsLabel()
 
 void CCDirector::updateContentScaleFactor()
 {
-    m_bIsContentScaleSupported = m_pobOpenGLView->setContentScaleFactor(m_fContentScaleFactor);
+    // [openGLView responseToSelector:@selector(setContentScaleFactor)]
+    if (m_pobOpenGLView->canSetContentScaleFactor())
+    {
+        m_pobOpenGLView->setContentScaleFactor(m_fContentScaleFactor);
+        m_bIsContentScaleSupported = true;
+    }
+    else
+    {
+        CCLOG("cocos2d: setContentScaleFactor:'is not supported on this device");
+    }
 }
 
 bool CCDirector::enableRetinaDisplay(bool enabled)
@@ -827,8 +791,15 @@ bool CCDirector::enableRetinaDisplay(bool enabled)
     {
         return false;
     }
-    
-    if (! m_pobOpenGLView->enableRetina())
+
+    // setContentScaleFactor is not supported
+    if (! m_pobOpenGLView->canSetContentScaleFactor())
+    {
+        return false;
+    }
+
+    // SD device
+    if (m_pobOpenGLView->getMainScreenScale() == 1.0)
     {
         return false;
     }

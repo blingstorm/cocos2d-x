@@ -32,13 +32,19 @@ NS_CC_BEGIN
 
 CCEGLView::CCEGLView()
 {
-    m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getWidth];
-    m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getHeight];
+
 }
 
 CCEGLView::~CCEGLView()
 {
 
+}
+
+CCSize CCEGLView::getSize()
+{
+    cocos2d::CCSize size([[EAGLView sharedEGLView] getWidth], [[EAGLView sharedEGLView] getHeight]);
+
+    return size;
 }
 
 bool CCEGLView::isIpad()
@@ -51,38 +57,16 @@ bool CCEGLView::isOpenGLReady()
     return [EAGLView sharedEGLView] != NULL;
 }
     
-bool CCEGLView::setContentScaleFactor(float contentScaleFactor)
+bool CCEGLView::canSetContentScaleFactor()
 {
-    // can not enable retina because have used resolution policy
-    assert(m_eResolutionPolicy == kResolutionUnKnown);
-    
-    if ([[EAGLView sharedEGLView] respondsToSelector:@selector(setContentScaleFactor:)])
-    {
-        UIView * view = [EAGLView sharedEGLView];
-        view.contentScaleFactor = contentScaleFactor;
-        [view setNeedsLayout];
-        
-        m_fXScale = m_fYScale = contentScaleFactor;
-        m_bIsRetinaEnabled = true;
-        
-        return true;
-    }
-    else 
-    {
-        return false;
-    }
+   return [[EAGLView sharedEGLView] respondsToSelector:@selector(setContentScaleFactor:)];
 }
-
-bool CCEGLView::enableRetina()
+    
+void CCEGLView::setContentScaleFactor(float contentScaleFactor)
 {
-    bool ret = true;
-    
-    // can set content scale factor?
-    ret &= [[EAGLView sharedEGLView] respondsToSelector:@selector(setContentScaleFactor:)];
-    // SD device?
-    ret &= ([[UIScreen mainScreen] scale] != 1.0f);
-    
-    return ret;
+    UIView * view = [EAGLView sharedEGLView];
+    view.contentScaleFactor = contentScaleFactor;
+    [view setNeedsLayout];
 }
 
 void CCEGLView::end()
@@ -97,6 +81,12 @@ void CCEGLView::end()
 void CCEGLView::swapBuffers()
 {
     [[EAGLView sharedEGLView] swapBuffers];
+}
+
+CCSize  CCEGLView::getFrameSize()
+{
+    assert(false);
+	return CCSizeMake(0, 0);
 }
 
 void CCEGLView::setIMEKeyboardState(bool bOpen)
@@ -115,6 +105,11 @@ CCEGLView& CCEGLView::sharedOpenGLView()
 {
     static CCEGLView instance;
     return instance;
+}
+
+float CCEGLView::getMainScreenScale()
+{
+    return [[UIScreen mainScreen] scale];
 }
 
 NS_CC_END

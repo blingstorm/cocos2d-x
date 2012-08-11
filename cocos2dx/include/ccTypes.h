@@ -305,6 +305,22 @@ typedef struct _ccBlendFunc
     GLenum dst;
 } ccBlendFunc;
 
+//! ccResolutionType
+typedef enum
+{
+    //! Unknonw resolution type
+    kCCResolutionUnknown,
+    //! iPhone resolution type
+    kCCResolutioniPhone,
+    //! RetinaDisplay resolution type
+    kCCResolutioniPhoneRetinaDisplay,
+    //! iPad resolution type
+    kCCResolutioniPad,
+    //! iPad Retina Display resolution type
+    kCCResolutioniPadRetinaDisplay,
+    
+} ccResolutionType;
+
 // XXX: If any of these enums are edited and/or reordered, udpate CCTexture2D.m
 //! Vertical text alignment type
 typedef enum

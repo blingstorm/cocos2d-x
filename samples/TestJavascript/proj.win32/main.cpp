@@ -25,7 +25,10 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
     // create the application instance
     AppDelegate app;
     CCEGLView& eglView = CCEGLView::sharedOpenGLView();
-    eglView.setSize(480, 320);
+    eglView.setViewName("Hello World");
+    eglView.setFrameSize(480, 320);
+    // set the design resolution screen size, if you want to use Design Resoulution scaled to current screen, please uncomment next line.
+    // eglView.setDesignResolutionSize(480, 320);
 
     int ret = CCApplication::sharedApplication().run();
 

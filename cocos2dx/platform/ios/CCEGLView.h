@@ -38,16 +38,21 @@ public:
     CCEGLView();
    ~CCEGLView();
 
-    virtual bool    isOpenGLReady();
-    virtual bool    isIpad();
-    virtual bool    setContentScaleFactor(float contentScaleFactor);
-    virtual bool    enableRetina();
+    CCSize  getSize();
+    bool    isOpenGLReady();
+    bool    canSetContentScaleFactor();
+    bool    isIpad();
+    void    setContentScaleFactor(float contentScaleFactor);
+    virtual CCSize  getFrameSize();
     
     // keep compatible
-    virtual void    end();
-    virtual void    swapBuffers();
+    void    end();
+    void    swapBuffers();
+
     
-    virtual void setIMEKeyboardState(bool bOpen);
+    float getMainScreenScale();
+    
+    void setIMEKeyboardState(bool bOpen);
     
     static CCEGLView& sharedOpenGLView();
 

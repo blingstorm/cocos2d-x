@@ -134,6 +134,8 @@ public:
 
     bool initWithImage(CCImage * uiImage);
 
+    bool initWithImage(CCImage *uiImage, ccResolutionType resolution);
+
     /** Initializes a texture from a string with dimensions, alignment, font name and font size */
     bool initWithString(const char *text, const CCSize& dimensions, CCTextAlignment hAlignment, CCVerticalTextAlignment vAlignment, const char *fontName, float fontSize);
     /** Initializes a texture from a string with font name and font size */
@@ -271,6 +273,17 @@ private:
 
     /** shader program used by drawAtPoint and drawInRect */
     CC_PROPERTY(CCGLProgram*, m_pShaderProgram, ShaderProgram);
+
+
+    /** Returns the resolution type of the texture.
+     Is it a RetinaDisplay texture, an iPad texture or an standard texture ?
+     Only valid on iOS. Not valid on OS X.
+
+     Should be a readonly property. It is readwrite as a hack.
+
+     @since v1.1
+     */
+    CC_SYNTHESIZE(ccResolutionType, m_eResolutionType, ResolutionType);
 };
 
 // end of textures group

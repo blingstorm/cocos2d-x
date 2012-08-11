@@ -6,8 +6,12 @@
  */
 
 #include "CCEGLView.h"
+
 #include "CCGL.h"
+
 #include "GL/glfw.h"
+
+#include "CCSet.h"
 #include "ccMacros.h"
 #include "CCDirector.h"
 #include "touch_dispatcher/CCTouch.h"
@@ -74,10 +78,18 @@ bool initExtensions() {
 }
 
 NS_CC_BEGIN
+static CCEGLView* s_pMainWindow = NULL;
 
 CCEGLView::CCEGLView()
-: bIsInit(false)
+: m_bCaptured(false)
+, m_bOrientationReverted(false)
+, m_bOrientationInitVertical(false)
+, bIsInit(false)
+, m_fScreenScaleFactor(1.0f)
 {
+	m_pTouch = new CCTouch;
+	m_pSet = new CCSet;
+	m_sSizeInPoint.width = m_sSizeInPoint.height = 0;
 }
 
 CCEGLView::~CCEGLView()
@@ -105,6 +117,7 @@ void charEventHandle(int iCharID,int iCharState) {
 
 	// ascii char
 	CCIMEDispatcher::sharedDispatcher()->dispatchInsertText((const char *)&iCharID, 1);
+
 }
 
 void mouseButtonEventHandle(int iMouseID,int iMouseState) {
@@ -113,14 +126,15 @@ void mouseButtonEventHandle(int iMouseID,int iMouseState) {
 		int x,y;
 		glfwGetMousePos(&x, &y);
 		CCPoint oPoint((float)x,(float)y);
-		/*
-		if (!CCRect::CCRectContainsPoint(s_pMainWindow->m_rcViewPort,oPoint))
-		{
+
+		if (!CCRect::CCRectContainsPoint(s_pMainWindow->m_rcViewPort,oPoint)) {
 			CCLOG("not in the viewport");
 			return;
 		}
-		*/
+
 		int id = 0;
+		s_pMainWindow->m_pSet->addObject(s_pMainWindow->m_pTouch);
+		s_pMainWindow->m_mousePoint = oPoint;
 		if (iMouseState == GLFW_PRESS) {
 			CCEGLView::sharedOpenGLView().handleTouchesBegin(1, &id, &oPoint.x, &oPoint.y);
 
@@ -135,21 +149,27 @@ void mousePosEventHandle(int iPosX,int iPosY) {
 
 	//to test move
 	if (iButtonState == GLFW_PRESS) {
-	      int id = 0;
-	      float x = (float)iPosX;
-	      float y = (float)iPosY;
-	      CCEGLView::sharedOpenGLView().handleTouchesMove(1, &id, &x, &y);
+		if (iPosX!=(int)s_pMainWindow->m_mousePoint.x||iPosY!=(int)s_pMainWindow->m_mousePoint.y) {
+			//it movies
+			float x = (float)(iPosX- s_pMainWindow->m_rcViewPort.origin.x) / s_pMainWindow->m_fScreenScaleFactor;
+			float y = (float)(iPosY - s_pMainWindow->m_rcViewPort.origin.y) / s_pMainWindow->m_fScreenScaleFactor; 
+			int id = 0;
+			CCEGLView::sharedOpenGLView().handleTouchesMove(1, &id, &x, &y);
+			//update new mouse pos
+			s_pMainWindow->m_mousePoint.x = iPosX;
+			s_pMainWindow->m_mousePoint.y = iPosY;
+		}
 	}
 }
 
-void CCEGLView::setSize(float width, float height)
-{
-	bool eResult = false;
+bool CCEGLView::Create(const char* pTitle, int iPixelWidth, int iPixelHeight, int iWidth, int iHeight, int iDepth) {
+	bool eResult;
 	int u32GLFWFlags = GLFW_WINDOW;
 	//create the window by glfw.
 
 	//check
-	CCAssert(width!=0&&height!=0, "invalid window's size equal 0");
+	CCAssert(iPixelWidth!=0&&iPixelHeight!=0, "invalid window's size equal 0");
+	CCAssert(iWidth!=0&&iHeight!=0, "invalid the size in points equal 0");
 
 	//Inits GLFW
 	eResult = glfwInit() != GL_FALSE;
@@ -161,7 +181,6 @@ void CCEGLView::setSize(float width, float height)
 	/* Updates window hint */
 	glfwOpenWindowHint(GLFW_WINDOW_NO_RESIZE, GL_TRUE);
 
-	int iDepth = 16; // set default value
 	/* Depending on video depth */
 	switch(iDepth)
 	{
@@ -169,7 +188,7 @@ void CCEGLView::setSize(float width, float height)
 		case 16:
 		{
 			/* Updates video mode */
-			eResult = (glfwOpenWindow(width, height, 5, 6, 5, 0, 16, 0, (int)u32GLFWFlags) != false) ? true : false;
+			eResult = (glfwOpenWindow(iPixelWidth, iPixelHeight, 5, 6, 5, 0, 16, 0, (int)u32GLFWFlags) != false) ? true : false;
 
 			break;
 		}
@@ -178,7 +197,7 @@ void CCEGLView::setSize(float width, float height)
 		case 24:
 		{
 			/* Updates video mode */
-			eResult = (glfwOpenWindow(width, height, 8, 8, 8, 0, 16, 0, (int)u32GLFWFlags) != false) ? true : false;
+			eResult = (glfwOpenWindow(iPixelWidth, iPixelHeight, 8, 8, 8, 0, 16, 0, (int)u32GLFWFlags) != false) ? true : false;
 
 			break;
 		}
@@ -188,7 +207,7 @@ void CCEGLView::setSize(float width, float height)
 		case 32:
 		{
 			/* Updates video mode */
-			eResult = (glfwOpenWindow(width, height, 8, 8, 8, 8, 16, 0, (int)u32GLFWFlags) != GL_FALSE) ? true :false;
+			eResult = (glfwOpenWindow(iPixelWidth, iPixelHeight, 8, 8, 8, 8, 16, 0, (int)u32GLFWFlags) != GL_FALSE) ? true :false;
 			break;
 		}
 	}
@@ -198,15 +217,32 @@ void CCEGLView::setSize(float width, float height)
 	{
 
 		/* Updates actual size */
-	  //		glfwGetWindowSize(&width, &height);
+		glfwGetWindowSize(&iPixelWidth, &iPixelHeight);
 
-		CCEGLViewProtocol::setSize(width, height);		
+		//assign screen size and point's size
+		m_sSizeInPixel.width = iPixelWidth;
+		m_sSizeInPixel.height = iPixelHeight;
+
+		m_sSizeInPoint.width = iWidth;
+		m_sSizeInPoint.height = iHeight;
+
+		// calculate the factor and the rect of viewport
+		m_fScreenScaleFactor = MIN((float)m_sSizeInPixel.width / m_sSizeInPoint.width,
+				(float)m_sSizeInPixel.height / m_sSizeInPoint.height);
+
+		int viewPortW = (int)(m_sSizeInPoint.width * m_fScreenScaleFactor);
+		int viewPortH = (int)(m_sSizeInPoint.height * m_fScreenScaleFactor);
+		m_rcViewPort.origin.x = (m_sSizeInPixel.width - viewPortW) / 2;
+		m_rcViewPort.origin.y = (m_sSizeInPixel.height - viewPortH) / 2;
+		m_rcViewPort.size.width = viewPortW;
+		m_rcViewPort.size.height = viewPortH;
 
 		/* Updates its title */
-		glfwSetWindowTitle("Cocos2dx-Linux");
+		glfwSetWindowTitle(pTitle);
 
 		//set the init flag
 		bIsInit = true;
+		s_pMainWindow = this;
 
 		//register the glfw key event
 		glfwSetKeyCallback(keyEventHandle);
@@ -225,6 +261,12 @@ void CCEGLView::setSize(float width, float height)
 		}
 		initGL();
 	}
+	return true;
+}
+
+CCSize CCEGLView::getSize()
+{
+	return CCSize((float)(m_sSizeInPoint.width), (float)(m_sSizeInPoint.height));
 }
 
 bool CCEGLView::isOpenGLReady()
@@ -236,14 +278,44 @@ void CCEGLView::end()
 {
 	/* Exits from GLFW */
 	glfwTerminate();
-	delete this;
 	exit(0);
 }
-
+/*
+void CCEGLView::setTouchDelegate(EGLTouchDelegate * pDelegate) {
+	//TODO touch event
+	m_pDelegate = pDelegate;
+}
+*/
 void CCEGLView::swapBuffers() {
 	if (bIsInit) {
 		/* Swap buffers */
 		glfwSwapBuffers();
+	}
+}
+
+int CCEGLView::setDeviceOrientation(int eOritation) {
+	CCLog("warning:could not setDeviceOrientation after initialized");
+    return -1;
+}
+
+void CCEGLView::setViewPortInPoints(float x, float y, float w, float h) {
+//	TODO
+	if (bIsInit) {
+		float factor = m_fScreenScaleFactor / CC_CONTENT_SCALE_FACTOR();
+		glViewport((GLint)(x * factor) + m_rcViewPort.origin.x,
+				(GLint)(y * factor) + m_rcViewPort.origin.y,
+				(GLint)(w * factor),
+				(GLint)(h * factor));
+	}
+}
+void CCEGLView::setScissorInPoints(float x, float y, float w, float h) {
+	//TODO
+	if (bIsInit) {
+		float factor = m_fScreenScaleFactor / CC_CONTENT_SCALE_FACTOR();
+		glScissor((GLint)(x * factor) + m_rcViewPort.origin.x,
+				(GLint)(y * factor) + m_rcViewPort.origin.y,
+				(GLint)(w * factor),
+				(GLint)(h * factor));
 	}
 }
 
@@ -292,14 +364,19 @@ void CCEGLView::destroyGL()
 	*/
 }
 
+bool CCEGLView::canSetContentScaleFactor() {
+	return false;
+}
+
+void CCEGLView::setContentScaleFactor(float contentScaleFactor) {
+	CCLog("could not set contentScaleFactor after initialized");
+
+}
+
 CCEGLView& CCEGLView::sharedOpenGLView()
 {
-    static CCEGLView* s_pEglView = NULL;
-    if (s_pEglView == NULL)
-    {
-        s_pEglView = new CCEGLView();
-    }
-    return *s_pEglView;
+	CC_ASSERT(s_pMainWindow);
+	return *s_pMainWindow;
 }
 
 NS_CC_END

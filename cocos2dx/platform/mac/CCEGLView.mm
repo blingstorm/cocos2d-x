@@ -32,12 +32,16 @@ namespace cocos2d {
 
 CCEGLView::CCEGLView()
 {
-    m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getWidth];
-    m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getHeight];
 }
 
 CCEGLView::~CCEGLView()
 {
+}
+
+cocos2d::CCSize  CCEGLView::getSize()
+{
+	cocos2d::CCSize size([[EAGLView sharedEGLView] getWidth], [[EAGLView sharedEGLView] getHeight]);
+	return size;
 }
 
 bool CCEGLView::isIpad()
@@ -49,10 +53,19 @@ bool CCEGLView::isOpenGLReady()
 {
     return [EAGLView sharedEGLView] != NULL;
 }
-
-bool CCEGLView::setContentScaleFactor(float contentScaleFactor)
+    
+bool CCEGLView::canSetContentScaleFactor()
 {
-    return false;
+	return false;
+//   return [[EAGLView sharedEGLView] respondsToSelector:@selector(setContentScaleFactor:)]
+//		   && [[NSScreen mainScreen] scale] != 1.0;
+}
+
+void CCEGLView::setContentScaleFactor(float contentScaleFactor)
+{
+//	NSView * view = [EAGLView sharedEGLView];
+//	view.contentScaleFactor = contentScaleFactor;
+//	[view setNeedsLayout];
 }
 
 void CCEGLView::end()
@@ -68,6 +81,12 @@ void CCEGLView::end()
 void CCEGLView::swapBuffers()
 {
 	[[EAGLView sharedEGLView] swapBuffers];
+}
+	
+CCSize  CCEGLView::getFrameSize()
+{
+    assert(false);
+	return CCSizeMake(0, 0);
 }
 
 void CCEGLView::setIMEKeyboardState(bool bOpen)

@@ -334,7 +334,7 @@ std::string& CCFileUtils::removeSuffixFromFile(std::string& path)
         std::string::size_type suffixPos = path.rfind(__suffixiPhoneRetinaDisplay);
         if (std::string::npos != suffixPos && suffixPos > pos)
         {
-            CCLog("cocos2d: FilePath(%s) contains suffix(%s), remove it.", path.c_str(),
+            CCLOG("cocos2d: FilePath(%s) contains suffix(%s), remove it.", path.c_str(),
                 __suffixiPhoneRetinaDisplay);
             path.replace(suffixPos, strlen(__suffixiPhoneRetinaDisplay), "");
         }

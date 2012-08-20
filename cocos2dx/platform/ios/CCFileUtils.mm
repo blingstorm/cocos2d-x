@@ -64,7 +64,7 @@ static NSString* removeSuffixFromPath(NSString *suffix, NSString *path)
     // check if path already has the suffix.
     if( [name rangeOfString:suffix].location != NSNotFound ) {
         
-        CCLOG("cocos2d: Filename(%s) contains %s suffix. Removing it. See cocos2d issue #1040", [path UTF8String], [suffix UTF8String]);
+//        CCLOG("cocos2d: Filename(%s) contains %s suffix. Removing it. See cocos2d issue #1040", [path UTF8String], [suffix UTF8String]);
         
         NSString *newLastname = [name stringByReplacingOccurrencesOfString:suffix withString:@""];
         
@@ -89,7 +89,7 @@ static NSString* getPathForSuffix(NSString *path, NSString *suffix)
     // check if path already has the suffix.
     if( [name rangeOfString:suffix].location != NSNotFound ) {
         
-        CCLOG("cocos2d: WARNING Filename(%s) already has the suffix %s. Using it.", [name UTF8String], [suffix UTF8String]);
+//        CCLOG("cocos2d: WARNING Filename(%s) already has the suffix %s. Using it.", [name UTF8String], [suffix UTF8String]);
         return path;
     }
     

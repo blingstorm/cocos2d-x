@@ -341,7 +341,36 @@ const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath, b
 {
     if (pIsCacheFirst) {
         NSString* str = [NSString stringWithUTF8String:BSResource::shared()->getFile(pszRelativePath).c_str()];
-        return [str UTF8String];
+        NSString *ret = nil;
+        
+        // iPad?
+        if( UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+        {
+            // Retina Display ?
+            if( CC_CONTENT_SCALE_FACTOR() == 2 ) {
+                ret = getPathForSuffix(str, __suffixiPadRetinaDisplay);
+            }
+            else
+            {
+                ret = getPathForSuffix(str, __suffixiPad);
+            }
+        }
+        // iPhone ?
+        else
+        {
+            // Retina Display ?
+            if( CC_CONTENT_SCALE_FACTOR() == 2 ) {
+                ret = getPathForSuffix(str, __suffixiPhoneRetinaDisplay);
+            }
+        }
+        
+        // If it is iPhone Non RetinaDisplay, or if the previous "getPath" failed, then use iPhone images.
+        if( ret == nil )
+        {
+            ret = str;
+        }
+        
+        return [ret UTF8String];
     }
     else {
         ccResolutionType ignore;

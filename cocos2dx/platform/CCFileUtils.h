@@ -80,7 +80,7 @@ public:
     If you have not set the ResourcePath,the function add "/NEWPLUS/TDA_DATA/UserData/" as default.
     You can set ResourcePath by function void setResourcePath(const char *pszResourcePath);
     */
-    const char* fullPathFromRelativePath(const char *pszRelativePath);
+    const char* fullPathFromRelativePath(const char *pszRelativePath, bool pIsCacheFirst = true);
 
     /** Returns the fullpath of an filename including the resolution of the image.
  

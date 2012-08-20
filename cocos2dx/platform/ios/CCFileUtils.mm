@@ -37,6 +37,8 @@ THE SOFTWARE.
 #include "CCDictionary.h"
 #include "support/zip_support/unzip.h"
 
+#include "BSResource.h"
+
 #define MAX_PATH 260
 
 USING_NS_CC;
@@ -335,10 +337,16 @@ bool CCFileUtils::iPadRetinaDisplayFileExistsAtPath(const char *cpath)
     return fileExistsAtPath(cpath, [__suffixiPadRetinaDisplay UTF8String]);
 }
 
-const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath)
+const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath, bool pIsCacheFirst)
 {
-    ccResolutionType ignore;
-    return fullPathFromRelativePath(pszRelativePath, &ignore);
+    if (pIsCacheFirst) {
+        NSString* str = [NSString stringWithUTF8String:BSResource::shared()->getFile(pszRelativePath).c_str()];
+        return [str UTF8String];
+    }
+    else {
+        ccResolutionType ignore;
+        return fullPathFromRelativePath(pszRelativePath, &ignore);
+    }
 }
 
 const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath, ccResolutionType *pResolutionType)

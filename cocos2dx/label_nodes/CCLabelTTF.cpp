@@ -221,7 +221,7 @@ CCSize CCLabelTTF::getDimensions()
     return m_tDimensions;
 }
 
-void CCLabelTTF::setDimensions(CCSize &dim)
+void CCLabelTTF::setDimensions(const CCSize &dim)
 {
     if (dim.width != m_tDimensions.width || dim.height != m_tDimensions.height)
     {

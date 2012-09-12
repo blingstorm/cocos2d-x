@@ -111,7 +111,7 @@ static NSString* getPathForSuffix(NSString *path, NSString *suffix)
     if( [__localFileManager fileExistsAtPath:newName] )
         return newName;
     
-    CCLOG("cocos2d: CCFileUtils: Warning file not found: %s", [[newName lastPathComponent] UTF8String] );
+//    CCLOG("cocos2d: CCFileUtils: Warning file not found: %s", [[newName lastPathComponent] UTF8String] );
     
     return nil;
 }

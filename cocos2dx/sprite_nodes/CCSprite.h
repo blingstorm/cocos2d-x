@@ -339,6 +339,8 @@ public:
     @since v0.99.5
     */
     virtual void setDisplayFrameWithAnimationName(const char *animationName, int frameIndex);
+    
+    void setIsGrayScale(bool pIsGrayScale) {m_bGrayScale = pIsGrayScale;};
 
 protected:
     virtual void setTextureCoords(CCRect rect);
@@ -383,6 +385,7 @@ protected:
     // opacity and RGB protocol
     ccColor3B m_sColorUnmodified;
     bool m_bOpacityModifyRGB;
+    bool m_bGrayScale;
 
     // image is flipped
     bool m_bFlipX;

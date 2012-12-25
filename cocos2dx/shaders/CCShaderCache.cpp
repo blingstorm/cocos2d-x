@@ -151,6 +151,8 @@ void CCShaderCache::loadDefaultShaders()
     
     m_pPrograms->setObject(p, kCCShader_PositionLengthTexureColor);
     p->release();
+    
+    
 }
 
 void CCShaderCache::reloadDefaultShaders()

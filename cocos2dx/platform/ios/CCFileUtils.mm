@@ -37,6 +37,8 @@ THE SOFTWARE.
 #include "CCDictionary.h"
 #include "support/zip_support/unzip.h"
 
+#include "BSResource.h"
+
 #define MAX_PATH 260
 
 USING_NS_CC;
@@ -182,9 +184,14 @@ const char* CCFileUtils::getResourceDirectory()
     return m_obDirectory.c_str();
 }
 
-const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath)
+const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath, bool pIsCacheFirst)
 {
     CCAssert(pszRelativePath != NULL, "CCFileUtils: Invalid path");
+    
+    if (pIsCacheFirst) {
+        NSString* str = [NSString stringWithUTF8String:BSResource::shared()->getFile(pszRelativePath).c_str()];
+        return [str UTF8String];
+    }
     
     NSString *fullpath = nil;
     NSString *relPath = [NSString stringWithUTF8String:pszRelativePath];

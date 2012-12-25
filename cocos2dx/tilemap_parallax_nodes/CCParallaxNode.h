@@ -64,6 +64,7 @@ public:
     virtual void removeChild(CCNode* child, bool cleanup);
     virtual void removeAllChildrenWithCleanup(bool cleanup);
     virtual void visit(void);
+    virtual void clearLastPosition() {m_tLastPosition = CCPointZero;};
 private:
     CCPoint absolutePosition();
 protected:

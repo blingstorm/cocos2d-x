@@ -227,8 +227,6 @@ bool CCSprite::initWithTexture(CCTexture2D *pTexture, const CCRect& rect, bool r
     // by default use "Self Render".
     // if the sprite is added to a batchnode, then it will automatically switch to "batchnode Render"
     setBatchNode(NULL);
-
-    m_bGrayScale = false;
     
     return true;
 }
@@ -616,25 +614,7 @@ void CCSprite::draw(void)
     diff = offsetof( ccV3F_C4B_T2F, colors);
     glVertexAttribPointer(kCCVertexAttrib_Color, 4, GL_UNSIGNED_BYTE, GL_TRUE, kQuadSize, (void*)(offset + diff));
 
-    //grayscaling
-    if (m_bGrayScale) {
-//        GLfloat rgba[4] = { 0.65f, 0.65f, 0.65f, 1.0f };
-//        glTexEnvi( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE );
-//        glTexEnvi( GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_DOT3_RGB );
-//        glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, rgba );
-//        glTexEnvi( GL_TEXTURE_ENV, GL_SRC0_RGB, GL_CONSTANT );
-//        glTexEnvi( GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR );
-//        glTexEnvi( GL_TEXTURE_ENV, GL_SRC1_RGB, GL_TEXTURE );
-//        glTexEnvi( GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR );
-        // ... glDrawArrays() here ...
-        // turn off grayscaling:
-    }
-
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    
-    if (m_bGrayScale) {
-//        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    }
 
     CHECK_GL_ERROR_DEBUG();
 

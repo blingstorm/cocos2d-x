@@ -389,6 +389,8 @@ public:
     void setPositionY(float y);
     void setPosition(float x, float y);
     void _setZOrder(int z);
+    
+    void setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren);
 
 public:
     CCNode(void);

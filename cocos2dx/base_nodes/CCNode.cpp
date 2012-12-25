@@ -36,6 +36,7 @@ THE SOFTWARE.
 #include "actions/CCActionManager.h"
 #include "script_support/CCScriptSupport.h"
 #include "shaders/CCGLProgram.h"
+#include "CCShaderCache.h"
 // externals
 #include "kazmath/GL/matrix.h"
 
@@ -1230,5 +1231,30 @@ void CCNode::updateTransform()
     // Recursively iterate over children
     arrayMakeObjectsPerformSelector(m_pChildren, updateTransform, CCNode*);
 }
+
+void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
+    if (pIsGrayScale) {
+        if (!CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram")) {
+            CCGLProgram *pBWShaderProgram = new CCGLProgram();
+            pBWShaderProgram->autorelease();
+            pBWShaderProgram->initWithVertexShaderFilename("Shaders/GrayScale.vsh", "Shaders/GrayScale.fsh");
+            pBWShaderProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+            pBWShaderProgram->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+            pBWShaderProgram->link();
+            pBWShaderProgram->updateUniforms();
+            CCShaderCache::sharedShaderCache()->addProgram(pBWShaderProgram, "kGrayScaleProgram");
+        }
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram"));
+        this->getShaderProgram()->use();
+        if (pIsAffectAllChildren) {
+            CCObject* childNode = NULL;
+            CCARRAY_FOREACH(m_pChildren, childNode) {
+                dynamic_cast<CCNode*>(childNode)->setIsGrayScale(pIsGrayScale, pIsAffectAllChildren);
+            }
+        }
+        
+    }
+}
+
 
 NS_CC_END

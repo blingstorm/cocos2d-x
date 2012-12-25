@@ -340,13 +340,11 @@ public:
     */
     virtual void setDisplayFrameWithAnimationName(const char *animationName, int frameIndex);
     
-    void setIsGrayScale(bool pIsGrayScale) {m_bGrayScale = pIsGrayScale;};
-
 protected:
     virtual void setTextureCoords(CCRect rect);
     virtual void updateBlendFunc(void);
     virtual void setReorderChildDirtyRecursively(void);
-
+    
 protected:
     //
     // Data used when the sprite is rendered using a CCSpriteSheet
@@ -385,7 +383,6 @@ protected:
     // opacity and RGB protocol
     ccColor3B m_sColorUnmodified;
     bool m_bOpacityModifyRGB;
-    bool m_bGrayScale;
 
     // image is flipped
     bool m_bFlipX;

@@ -5,8 +5,8 @@
 # Don't modify the script until you know what you do.
 
 # set environment paramters
-NDK_ROOT_LOCAL="/home/laschweinski/android/android-ndk-r5"
-ANDROID_SDK_ROOT_LOCAL="/home/laschweinski/android/android-sdk-linux_86"
+NDK_ROOT_LOCAL="/Users/shishaoguang/work/android-ndk-r8b"
+ANDROID_SDK_ROOT_LOCAL="/Users/shishaoguang/work/android-sdk-macosx"
 
 NEED_BOX2D=false
 NEED_CHIPMUNK=false
@@ -33,7 +33,7 @@ print_usage(){
 }
 
 check_param(){
-    for param in ${PARAMS[@]} 
+    for param in ${PARAMS[@]}
     do
         case $param in
             -b | --box2d)
@@ -56,9 +56,9 @@ check_param(){
                 exit 1
         esac
     done
-    
+
     if [ $NEED_BOX2D = "true" ]; then
-        if [ $NEED_CHIPMUNK = "true" ]; then 
+        if [ $NEED_CHIPMUNK = "true" ]; then
             echo Warning!!!
             echo Use box2d and chipmunk together????
         fi
@@ -106,7 +106,7 @@ create_android_project(){
     echo "input your project name:"
     read PROJECT_NAME
     PROJECT_DIR=`pwd`/$PROJECT_NAME
-    
+
     # check if PROJECT_DIR is exist
     if [ -d $PROJECT_DIR ]; then
         echo "$PROJECT_DIR is exist, please use another name"

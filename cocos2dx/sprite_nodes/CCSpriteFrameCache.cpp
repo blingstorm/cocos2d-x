@@ -400,12 +400,13 @@ CCSpriteFrame* CCSpriteFrameCache::spriteFrameByName(const char *pszName)
     {
         // try alias dictionary
         CCString *key = (CCString*)m_pSpriteFramesAliases->objectForKey(pszName);  
+        
         if (key)
         {
             frame = (CCSpriteFrame*)m_pSpriteFrames->objectForKey(key->getCString());
             if (! frame)
             {
-                CCLOG("cocos2d: CCSpriteFrameCache: Frame '%s' not found", pszName);
+                CCLog("cocos2d: CCSpriteFrameCache: Frame '%s' not found", pszName);
             }
         }
     }

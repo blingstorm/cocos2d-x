@@ -704,6 +704,7 @@ void CCTextureCache::dumpCachedTextureInfo()
 
 std::list<VolatileTexture*> VolatileTexture::textures;
 bool VolatileTexture::isReloading = false;
+int VolatileTexture::start_index = 0;
 
 VolatileTexture::VolatileTexture(CCTexture2D *t)
 : texture(t)
@@ -840,11 +841,113 @@ void VolatileTexture::removeTexture(CCTexture2D *t)
         }
     }
 }
+//by ssg
+void VolatileTexture::Reload(VolatileTexture *vt){
+    switch (vt->m_eCashedImageType)
+    {
+        case kImageFile:
+        {
+            CCImage image;
+            std::string lowerCase(vt->m_strFileName.c_str());
+            for (unsigned int i = 0; i < lowerCase.length(); ++i)
+            {
+                lowerCase[i] = tolower(lowerCase[i]);
+            }
+            
+            if (std::string::npos != lowerCase.find(".pvr")) 
+            {
+                CCTexture2DPixelFormat oldPixelFormat = CCTexture2D::defaultAlphaPixelFormat();
+                CCTexture2D::setDefaultAlphaPixelFormat(vt->m_PixelFormat);
+                
+                vt->texture->initWithPVRFile(vt->m_strFileName.c_str());
+                CCTexture2D::setDefaultAlphaPixelFormat(oldPixelFormat);
+            } 
+            else 
+            {
+                unsigned long nSize = 0;
+                unsigned char* pBuffer = CCFileUtils::sharedFileUtils()->getFileData(vt->m_strFileName.c_str(), "rb", &nSize);
+                
+                if (image.initWithImageData((void*)pBuffer, nSize, vt->m_FmtImage))
+                {
+                    CCTexture2DPixelFormat oldPixelFormat = CCTexture2D::defaultAlphaPixelFormat();
+                    CCTexture2D::setDefaultAlphaPixelFormat(vt->m_PixelFormat);
+                    vt->texture->initWithImage(&image);
+                    CCTexture2D::setDefaultAlphaPixelFormat(oldPixelFormat);
+                }
+                
+                CC_SAFE_DELETE_ARRAY(pBuffer);
+            }
+        }
+            break;
+        case kImageData:
+        {
+            vt->texture->initWithData(vt->m_pTextureData, 
+                                      vt->m_PixelFormat, 
+                                      vt->m_TextureSize.width, 
+                                      vt->m_TextureSize.height, 
+                                      vt->m_TextureSize);
+        }
+            break;
+        case kString:
+        {
+            vt->texture->initWithString(vt->m_strText.c_str(),
+                                        vt->m_strFontName.c_str(),
+                                        vt->m_fFontSize,
+                                        vt->m_size,
+                                        vt->m_alignment,
+                                        vt->m_vAlignment
+                                        );
+        }
+            break;
+        case kImage:
+        {
+            vt->texture->initWithImage(vt->uiImage);
+        }
+            break;
+        default:
+            break;
+    }
+}
+
+//by ssg
+void VolatileTexture::reloadingAllTexture(){
+    //    CCLog("reload all texture");
+    std::list<VolatileTexture *>::iterator iter = textures.begin();
+    
+    int count = 0;
+    while (count < start_index) {
+        iter++;
+        count++;
+    }
+    
+    long long start_time = getCurTime();
+    while (iter != textures.end())
+    {
+        VolatileTexture *vt = *iter++;
+        start_index ++;
+        //        CCLog("VolatileTexture::reloadingAllTexture %d",start_index);
+        //by ssg
+        VolatileTexture::Reload(vt);
+        vt->texture->setTexParameters(&vt->m_texParams);
+        if (getCurTime() - start_time > 1000) {//by ssg
+            break;
+        }
+    }
+    //    CCLog("reloadingAllTexture() reload is index=%d，size=%d",start_index,textures.size());
+    if (iter == textures.end() || textures.size() == 0) {
+        CCLog("reloadingAllTexture() reload is ok index=%d",start_index);
+        isReloading = false;
+    }
+    
+}
 
 void VolatileTexture::reloadAllTextures()
 {
     isReloading = true;
-
+#if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
+    CCLog("reloadAllTextures() reload perform");
+    start_index = 0;
+#else
     CCLOG("reload all texture");
     std::list<VolatileTexture *>::iterator iter = textures.begin();
 
@@ -920,6 +1023,7 @@ void VolatileTexture::reloadAllTextures()
     }
 
     isReloading = false;
+#endif
 }
 
 #endif // CC_ENABLE_CACHE_TEXTURE_DATA

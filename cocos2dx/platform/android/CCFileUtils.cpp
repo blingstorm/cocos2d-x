@@ -64,7 +64,7 @@ void CCFileUtils::purgeCachedEntries()
 
 }
 
-const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath)
+const char* CCFileUtils::fullPathFromRelativePath(const char *pszRelativePath, bool pIsCacheFirst)
 {
     return pszRelativePath;
 }

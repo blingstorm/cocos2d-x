@@ -276,13 +276,13 @@ bool CCTexturePVR::unpackPVRv2Data(unsigned char* data, unsigned int len)
     bool flipped = (flags & kPVRTextureFlagVerticalFlip) ? true : false;
     if (flipped)
     {
-        CCLOG("cocos2d: WARNING: Image is flipped. Regenerate it using PVRTexTool");
+        CCLog("cocos2d: WARNING: Image is flipped. Regenerate it using PVRTexTool");
     }
 
     if (! configuration->supportsNPOT() &&
         (header->width != ccNextPOT(header->width) || header->height != ccNextPOT(header->height)))
     {
-        CCLOG("cocos2d: ERROR: Loading an NPOT texture (%dx%d) but is not supported on this device", header->width, header->height);
+        CCLog("cocos2d: ERROR: Loading an NPOT texture (%dx%d) but is not supported on this device", header->width, header->height);
         return false;
     }
 
@@ -335,7 +335,7 @@ bool CCTexturePVR::unpackPVRv2Data(unsigned char* data, unsigned int len)
                     case kPVR2TexturePixelFormat_BGRA_8888:
                         if (CCConfiguration::sharedConfiguration()->supportsBGRA8888() == false) 
                         {
-                            CCLOG("cocos2d: TexturePVR. BGRA8888 not supported on this device");
+                            CCLog("cocos2d: TexturePVR. BGRA8888 not supported on this device");
                             return false;
                         }
                     default:
@@ -374,7 +374,6 @@ bool CCTexturePVR::unpackPVRv2Data(unsigned char* data, unsigned int len)
                 width = MAX(width >> 1, 1);
                 height = MAX(height >> 1, 1);
             }
-            
             //Mark pass as success
             success = true;
             break;
@@ -383,7 +382,7 @@ bool CCTexturePVR::unpackPVRv2Data(unsigned char* data, unsigned int len)
 
     if (! success)
     {
-        CCLOG("cocos2d: WARNING: Unsupported PVR Pixel Format: 0x%2x. Re-encode it with a OpenGL pixel format variant", formatFlags);
+        CCLog("cocos2d: WARNING: Unsupported PVR Pixel Format: 0x%2x. Re-encode it with a OpenGL pixel format variant", formatFlags);
     }
     
     return success;
@@ -609,6 +608,7 @@ bool CCTexturePVR::initWithContentsOfFile(const char* path)
     
     if (pvrlen < 0)
     {
+        CCLOG("CCTexturePVR::initWithContentsOfFile(): pvrlen <0 %d",pvrlen);
         this->release();
         return false;
     }

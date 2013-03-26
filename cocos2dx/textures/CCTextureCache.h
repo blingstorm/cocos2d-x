@@ -198,16 +198,26 @@ public:
     static void setTexParameters(CCTexture2D *t, ccTexParams *texParams);
     static void removeTexture(CCTexture2D *t);
     static void reloadAllTextures();
+    //by ssg
+    static void Reload(VolatileTexture *vt);
+    static void reloadingAllTexture();
 
 public:
     static std::list<VolatileTexture*> textures;
     static bool isReloading;
-    
-private:
+    static int start_index;
     // find VolatileTexture by CCTexture2D*
     // if not found, create a new one
     static VolatileTexture* findVolotileTexture(CCTexture2D *tt);
-
+private:
+    
+    //by ssg
+    static long long getCurTime(){
+        struct timeval tv;
+        if( -1==gettimeofday(&tv, NULL) ) 
+            return 0;
+        return ((long long)tv.tv_sec) * 1000 + (long long)(tv.tv_usec / 1000);
+    }
 protected:
     CCTexture2D *texture;
     

@@ -36,7 +36,11 @@ THE SOFTWARE.
 #include "actions/CCActionManager.h"
 #include "script_support/CCScriptSupport.h"
 #include "shaders/CCGLProgram.h"
+#if CC_PLATFORM_ANDROID == CC_TARGET_PLATFORM
+#include "shaders/CCShaderCache.h"
+#else
 #include "CCShaderCache.h"
+#endif
 // externals
 #include "kazmath/GL/matrix.h"
 

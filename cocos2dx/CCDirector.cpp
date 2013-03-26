@@ -55,6 +55,7 @@ THE SOFTWARE.
 #include "support/CCProfiling.h"
 #include "CCEGLView.h"
 #include <string>
+#include "CCEventType.h"
 
 /**
  Position of the FPS
@@ -97,6 +98,11 @@ CCDirector::CCDirector(void)
 bool CCDirector::init(void)
 {
     CCLOG("cocos2d: %s", cocos2dVersion());
+    
+    //by ssg
+    m_pLoadingScene = NULL;
+    load_file.clear();
+    load_count = 0;
     
     // scenes
     m_pRunningScene = NULL;
@@ -174,7 +180,8 @@ CCDirector::~CCDirector(void)
     CC_SAFE_RELEASE(m_pTouchDispatcher);
     CC_SAFE_RELEASE(m_pKeypadDispatcher);
     CC_SAFE_DELETE(m_pAccelerometer);
-
+    //by ssg
+    CC_SAFE_RELEASE_NULL(m_pLoadingScene);
     // pop the autorelease pool
     CCPoolManager::sharedPoolManager()->pop();
     CCPoolManager::purgePoolManager();
@@ -205,6 +212,13 @@ void CCDirector::setGLDefaultValues(void)
 // Draw the Scene
 void CCDirector::drawScene(void)
 {
+    if(m_pLoadingScene){//by ssg
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        kmGLPushMatrix();
+        m_pLoadingScene->visit();
+        kmGLPopMatrix();
+        return;
+    }
     // calculate "global" dt
     calculateDeltaTime();
 
@@ -909,6 +923,44 @@ void CCDirector::setAccelerometer(CCAccelerometer* pAccelerometer)
     }
 }
 
+//by ssg
+void CCDirector::ReleaseLoadScene(){
+    CCLog("CCDirector::ReleaseLoadScene");
+    CC_SAFE_RELEASE_NULL(m_pLoadingScene);
+    load_file.clear();
+}
+//by ssg
+bool CCDirector::InitLoadScene(){
+    if (load_file.empty()) {
+        return false;
+    }
+    if (m_pTouchDispatcher) {//不响应触摸
+        m_pTouchDispatcher->setDispatchEvents(false);
+    }
+    if (m_pLoadingScene) {
+        CC_SAFE_RELEASE_NULL(m_pLoadingScene);
+    }
+    m_pLoadingScene = CCScene::create();
+    CCSprite *node = CCSprite::create(load_file.c_str());
+    if(node){
+        m_pLoadingScene->addChild(node);
+        m_pLoadingScene->retain();
+#if CC_ENABLE_CACHE_TEXTURE_DATA
+        VolatileTexture *volatile_tex = VolatileTexture::findVolotileTexture(node->getTexture());
+        if (volatile_tex) {
+            VolatileTexture::Reload(volatile_tex);
+        }
+        VolatileTexture::removeTexture(node->getTexture());
+        CCTextureCache::sharedTextureCache()->removeTexture(node->getTexture());
+#endif
+        node->setPosition(ccp(m_pLoadingScene->getContentSize().width / 2, m_pLoadingScene->getContentSize().height / 2));
+        node->setRotation(-90);
+    }
+    load_count = 0;
+    load_file.clear();
+    return false;
+}
+
 CCAccelerometer* CCDirector::getAccelerometer()
 {
     return m_pAccelerometer;
@@ -939,7 +991,30 @@ void CCDisplayLinkDirector::mainLoop(void)
         m_bPurgeDirecotorInNextLoop = false;
         purgeDirector();
     }
-    else if (! m_bInvalid)
+#if CC_ENABLE_CACHE_TEXTURE_DATA && CC_PLATFORM_ANDROID == CC_TARGET_PLATFORM//by ssg
+    else if (VolatileTexture::isReloading) {
+        if(!CCDirector::sharedDirector()->InitLoadScene() && load_count > 2){
+            VolatileTexture::reloadingAllTexture();
+        } else {
+            load_count ++;
+        }
+        drawScene();
+        //        
+        if (!VolatileTexture::isReloading) {
+            
+            CCDirector::sharedDirector()->ReleaseLoadScene();
+            CCLog("this is mainLoop 2");
+            CCNotificationCenter::sharedNotificationCenter()->postNotification(EVNET_COME_TO_FOREGROUND, NULL);
+            CCLog("this is mainLoop 3");
+            if (m_pTouchDispatcher) {
+                m_pTouchDispatcher->setDispatchEvents(true);
+            }
+        }
+        return;
+    } 
+#endif
+    else 
+        if (! m_bInvalid)
      {
          drawScene();
      

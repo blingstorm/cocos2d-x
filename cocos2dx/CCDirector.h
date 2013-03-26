@@ -104,6 +104,9 @@ public:
 		static const long id = cocos2d::getHashCodeByString(typeid(cocos2d::CCDirector).name());
 		return id;
     }
+    //by ssg return true mean to load file ok,return false mean to already load file
+    bool InitLoadScene();
+    void ReleaseLoadScene();
 
     // attribute
 
@@ -367,6 +370,10 @@ protected:
      
     /* The running scene */
     CCScene *m_pRunningScene;
+    //by ssg
+    CCScene *m_pLoadingScene;
+    CC_SYNTHESIZE(std::string, load_file, LoadFile);
+    int load_count;
     
     /* will be the next 'runningScene' in the next frame
      nextScene is a weak reference. */

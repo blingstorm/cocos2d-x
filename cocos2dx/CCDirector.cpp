@@ -1003,9 +1003,7 @@ void CCDisplayLinkDirector::mainLoop(void)
         if (!VolatileTexture::isReloading) {
             
             CCDirector::sharedDirector()->ReleaseLoadScene();
-            CCLog("this is mainLoop 2");
             CCNotificationCenter::sharedNotificationCenter()->postNotification(EVNET_COME_TO_FOREGROUND, NULL);
-            CCLog("this is mainLoop 3");
             if (m_pTouchDispatcher) {
                 m_pTouchDispatcher->setDispatchEvents(true);
             }

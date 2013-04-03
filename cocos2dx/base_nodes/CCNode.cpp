@@ -1256,7 +1256,15 @@ void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
                 dynamic_cast<CCNode*>(childNode)->setIsGrayScale(pIsGrayScale, pIsAffectAllChildren);
             }
         }
-        
+    }
+    else {
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
+        if (pIsAffectAllChildren) {
+            CCObject* childNode = NULL;
+            CCARRAY_FOREACH(m_pChildren, childNode) {
+                dynamic_cast<CCNode*>(childNode)->setIsGrayScale(pIsGrayScale, pIsAffectAllChildren);
+            }
+        }
     }
 }
 

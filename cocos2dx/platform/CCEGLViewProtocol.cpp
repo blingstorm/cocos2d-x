@@ -255,6 +255,7 @@ void CCEGLViewProtocol::handleTouchesMove(int num, int ids[], float xs[], float 
 
 void CCEGLViewProtocol::getSetOfTouchesEndOrCancel(CCSet& set, int num, int ids[], float xs[], float ys[])
 {
+    CCLOG("CCEGLViewProtocol::getSetOfTouchesEndOrCancel()");
     for (int i = 0; i < num; ++i)
     {
         int id = ids[i];

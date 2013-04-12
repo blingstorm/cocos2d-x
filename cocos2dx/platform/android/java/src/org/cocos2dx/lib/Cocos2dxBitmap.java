@@ -91,7 +91,7 @@ public class Cocos2dxBitmap {
 	public static void createTextBitmap(String pString, final String pFontName, final int pFontSize, final int pAlignment, final int pWidth, final int pHeight) {
 		final int horizontalAlignment = pAlignment & 0x0F;
 		final int verticalAlignment = (pAlignment >> 4) & 0x0F;
-
+		
 		pString = Cocos2dxBitmap.refactorString(pString);
 		final Paint paint = Cocos2dxBitmap.newPaint(pFontName, pFontSize, horizontalAlignment);
 
@@ -295,8 +295,8 @@ public class Cocos2dxBitmap {
 				}
 
 				/* Remove spaces at the beginning of a new line. */
-				while (pString.indexOf(i++) == ' ') {
-					;
+				while (pString.indexOf(i) == ' ') {
+					i++;
 				}
 
 				start = i;

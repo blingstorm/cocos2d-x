@@ -99,8 +99,10 @@ public:
 
 static BitmapDC& sharedBitmapDC()
 {
-    static BitmapDC s_BmpDC;
-    return s_BmpDC;
+    //by ssg 解决了游戏退出时会有崩溃，很高的几率令三星手机重启
+    static BitmapDC *s_BmpDC = new BitmapDC();
+    //static BitmapDC s_BmpDC;
+    return *s_BmpDC;
 }
 
 bool CCImage::initWithString(
@@ -130,7 +132,6 @@ bool CCImage::initWithString(
         m_bHasAlpha = true;
         m_bPreMulti = true;
         m_nBitsPerComponent = 8;
-
         bRet = true;
     } while (0);
 

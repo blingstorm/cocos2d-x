@@ -151,7 +151,6 @@ CCSprite* CCSprite::spriteWithSpriteFrameName(const char *pszSpriteFrameName)
 CCSprite* CCSprite::createWithSpriteFrameName(const char *pszSpriteFrameName)
 {
     CCSpriteFrame *pFrame = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(pszSpriteFrameName);
-    
 #if COCOS2D_DEBUG > 0
     char msg[256] = {0};
     sprintf(msg, "Invalid spriteFrameName: %s", pszSpriteFrameName);
@@ -249,7 +248,7 @@ bool CCSprite::initWithTexture(CCTexture2D *pTexture)
 bool CCSprite::initWithFile(const char *pszFilename)
 {
     CCAssert(pszFilename != NULL, "Invalid filename for sprite");
-
+    
     CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage(pszFilename);
     if (pTexture)
     {
@@ -267,7 +266,6 @@ bool CCSprite::initWithFile(const char *pszFilename)
 bool CCSprite::initWithFile(const char *pszFilename, const CCRect& rect)
 {
     CCAssert(pszFilename != NULL, "");
-
     CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage(pszFilename);
     if (pTexture)
     {
@@ -283,17 +281,15 @@ bool CCSprite::initWithFile(const char *pszFilename, const CCRect& rect)
 bool CCSprite::initWithSpriteFrame(CCSpriteFrame *pSpriteFrame)
 {
     CCAssert(pSpriteFrame != NULL, "");
-
     bool bRet = initWithTexture(pSpriteFrame->getTexture(), pSpriteFrame->getRect());
     setDisplayFrame(pSpriteFrame);
-
+    
     return bRet;
 }
 
 bool CCSprite::initWithSpriteFrameName(const char *pszSpriteFrameName)
 {
     CCAssert(pszSpriteFrameName != NULL, "");
-
     CCSpriteFrame *pFrame = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(pszSpriteFrameName);
     return initWithSpriteFrame(pFrame);
 }

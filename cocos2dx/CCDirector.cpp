@@ -1001,12 +1001,12 @@ void CCDisplayLinkDirector::mainLoop(void)
         drawScene();
         //        
         if (!VolatileTexture::isReloading) {
-            
             CCDirector::sharedDirector()->ReleaseLoadScene();
             CCNotificationCenter::sharedNotificationCenter()->postNotification(EVNET_COME_TO_FOREGROUND, NULL);
             if (m_pTouchDispatcher) {
                 m_pTouchDispatcher->setDispatchEvents(true);
             }
+            CCDirector::sharedDirector()->setDepthTest(false);
         }
         return;
     } 

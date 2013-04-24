@@ -426,7 +426,7 @@ bool CCTexture2D::initWithString(const char *text, const char *fontName, float f
     VolatileTexture::addStringTexture(this, text, dimensions, hAlignment, vAlignment, fontName, fontSize);
 #endif
 
-    CCImage image;
+//    CCImage image;
 
     CCImage::ETextAlign eAlign;
 
@@ -450,12 +450,25 @@ bool CCTexture2D::initWithString(const char *text, const char *fontName, float f
         CCAssert(false, "Not supported alignment format!");
     }
     
-    if (!image.initWithString(text, (int)dimensions.width, (int)dimensions.height, eAlign, fontName, (int)fontSize))
+    
+    bool bRet = false;
+    CCImage* pImage = new CCImage();
+    do 
     {
-        return false;
-    }
-
-    return initWithImage(&image);
+        CC_BREAK_IF(NULL == pImage);
+        bRet = pImage->initWithString(text, (int)dimensions.width, (int)dimensions.height, eAlign, fontName, (int)fontSize);
+        CC_BREAK_IF(!bRet);
+        bRet = initWithImage(pImage);
+    } while (0);
+    CC_SAFE_RELEASE(pImage);
+    
+    return bRet;
+//    if (!image.initWithString(text, (int)dimensions.width, (int)dimensions.height, eAlign, fontName, (int)fontSize))
+//    {
+//        return false;
+//    }
+//
+//    return initWithImage(&image);
 }
 
 

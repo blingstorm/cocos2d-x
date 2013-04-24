@@ -947,6 +947,7 @@ void VolatileTexture::reloadAllTextures()
 #if CC_TARGET_PLATFORM == CC_PLATFORM_ANDROID
     CCLog("reloadAllTextures() reload perform");
     start_index = 0;
+    CCDirector::sharedDirector()->setDepthTest(false);
 #else
     CCLOG("reload all texture");
     std::list<VolatileTexture *>::iterator iter = textures.begin();

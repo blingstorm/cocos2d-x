@@ -50,7 +50,9 @@ THE SOFTWARE.
 #else
 #define RENDER_IN_SUBPIXEL (__ARGS__) (ceil(__ARGS__))
 #endif
-
+//by ssg
+#include "support/CCNotificationCenter.h"
+#include "CCEventType.h"
 NS_CC_BEGIN
 
 // XXX: Yes, nodes might have a sort problem once every 15 days if the game runs at 60 FPS and each frame sprites are reordered.
@@ -90,6 +92,7 @@ CCNode::CCNode(void)
 , m_uOrderOfArrival(0)
 , m_eGLServerState(ccGLServerState(0))
 , m_bReorderChildDirty(false)
+,isGrayScale(false)//by ssg
 {
     // set default scheduler and actionManager
     CCDirector *director = CCDirector::sharedDirector();
@@ -925,6 +928,10 @@ void CCNode::onExitTransitionDidStart()
 
 void CCNode::onExit()
 {
+    //by ssg
+    if (isGrayScale) {
+        CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
+    }
     this->pauseSchedulerAndActions();
 
     m_bRunning = false;
@@ -1236,7 +1243,27 @@ void CCNode::updateTransform()
     arrayMakeObjectsPerformSelector(m_pChildren, updateTransform, CCNode*);
 }
 
+void CCNode::listenReloadShader(CCObject *obj){
+    if (isGrayScale) {
+        CCGLProgram *pBWShaderProgram = CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram");
+        if (!pBWShaderProgram) {
+            pBWShaderProgram = new CCGLProgram();
+            pBWShaderProgram->autorelease();
+        }
+        
+        pBWShaderProgram->initWithVertexShaderFilename("Shaders/GrayScale.vsh", "Shaders/GrayScale.fsh");
+        pBWShaderProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+        pBWShaderProgram->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+        pBWShaderProgram->link();
+        pBWShaderProgram->updateUniforms();
+        CCShaderCache::sharedShaderCache()->addProgram(pBWShaderProgram, "kGrayScaleProgram");
+    }
+    this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram"));
+    this->getShaderProgram()->use();
+}
+
 void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
+    isGrayScale = pIsGrayScale;
     if (pIsGrayScale) {
         if (!CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram")) {
             CCGLProgram *pBWShaderProgram = new CCGLProgram();
@@ -1256,6 +1283,12 @@ void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
                 dynamic_cast<CCNode*>(childNode)->setIsGrayScale(pIsGrayScale, pIsAffectAllChildren);
             }
         }
+        //by ssg
+        CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
+        CCNotificationCenter::sharedNotificationCenter()->addObserver(this,
+                                                                      callfuncO_selector(CCNode::listenReloadShader),
+                                                                      EVENT_RELOAD_SHADERS,
+                                                                      NULL);
     }
     else {
         this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));

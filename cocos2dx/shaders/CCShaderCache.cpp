@@ -28,6 +28,9 @@ THE SOFTWARE.
 #include "CCGLProgram.h"
 #include "ccMacros.h"
 #include "ccShaders.h"
+//by ssg
+#include "support/CCNotificationCenter.h"
+#include "CCEventType.h"
 
 NS_CC_BEGIN
 
@@ -152,7 +155,6 @@ void CCShaderCache::loadDefaultShaders()
     m_pPrograms->setObject(p, kCCShader_PositionLengthTexureColor);
     p->release();
     
-    
 }
 
 void CCShaderCache::reloadDefaultShaders()
@@ -210,6 +212,8 @@ void CCShaderCache::reloadDefaultShaders()
     p = programForKey(kCCShader_PositionLengthTexureColor);
     p->reset();
     loadDefaultShader(p, kCCShaderType_Position_uColor);
+    //by ssg
+    CCNotificationCenter::sharedNotificationCenter()->postNotification(EVENT_RELOAD_SHADERS, NULL);
 }
 
 void CCShaderCache::loadDefaultShader(CCGLProgram *p, int type)

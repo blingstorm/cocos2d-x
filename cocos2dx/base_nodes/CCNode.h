@@ -216,6 +216,8 @@ public:
     /** The z order of the node relative to it's "brothers": children of the same parent */
     virtual int getZOrder();
     virtual void setZOrder(int nZOrder);
+    //by ssg
+    void listenReloadShader(CCObject *obj);
 
     /** The real openGL Z vertex.
      Differences between openGL Z vertex and cocos2d Z order:
@@ -739,6 +741,8 @@ private:
     void detachChild(CCNode *child, bool doCleanup);
     
     CCPoint convertToWindowSpace(const CCPoint& nodePoint);
+    //by ssg
+    bool isGrayScale;
 };
 
 // end of base_node group

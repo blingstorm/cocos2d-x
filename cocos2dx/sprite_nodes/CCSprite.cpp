@@ -137,6 +137,9 @@ CCSprite* CCSprite::createWithSpriteFrame(CCSpriteFrame *pSpriteFrame)
     if (pSpriteFrame && pobSprite && pobSprite->initWithSpriteFrame(pSpriteFrame))
     {
         pobSprite->autorelease();
+#if BS_PLATFORM_ANDROID_LD
+        pobSprite->SetOriginScale(3.0f / 2.0f);
+#endif
         return pobSprite;
     }
     CC_SAFE_DELETE(pobSprite);

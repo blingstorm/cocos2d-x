@@ -93,6 +93,10 @@ CCNode::CCNode(void)
 , m_eGLServerState(ccGLServerState(0))
 , m_bReorderChildDirty(false)
 ,isGrayScale(false)//by ssg
+#if BS_PLATFORM_ANDROID_LD
+,origin_scale(1)
+,parent_scale(1)
+#endif
 {
     // set default scheduler and actionManager
     CCDirector *director = CCDirector::sharedDirector();
@@ -239,10 +243,23 @@ float CCNode::getScale(void)
     return m_fScaleX;
 }
 
+#if BS_PLATFORM_ANDROID_LD
+void CCNode::SetOriginScale(float scale){
+    origin_scale = scale;
+//    m_fScaleX *= origin_scale / parent_scale;
+//    m_fScaleY *= origin_scale / parent_scale;
+    m_bTransformDirty = m_bInverseDirty = true;
+}
+#endif
+
 /// scale setter
 void CCNode::setScale(float scale)
 {
+//#if BS_PLATFORM_ANDROID_LD
+//    m_fScaleX = m_fScaleY = scale * origin_scale / parent_scale;
+//#else
     m_fScaleX = m_fScaleY = scale;
+//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
@@ -255,7 +272,11 @@ float CCNode::getScaleX()
 /// scaleX setter
 void CCNode::setScaleX(float newScaleX)
 {
+//#if BS_PLATFORM_ANDROID_LD
+//    m_fScaleX = newScaleX * origin_scale / parent_scale;
+//#else
     m_fScaleX = newScaleX;
+//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
@@ -268,7 +289,11 @@ float CCNode::getScaleY()
 /// scaleY setter
 void CCNode::setScaleY(float newScaleY)
 {
+//#if BS_PLATFORM_ANDROID_LD
+//    m_fScaleY = newScaleY * origin_scale / parent_scale;
+//#else
     m_fScaleY = newScaleY;
+//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
@@ -395,15 +420,23 @@ void CCNode::setAnchorPoint(const CCPoint& point)
 /// contentSize getter
 CCSize CCNode::getContentSize()
 {
+#if BS_PLATFORM_ANDROID_LD
+    return CCSizeMake(m_obContentSize.width * origin_scale, m_obContentSize.height * origin_scale);
+#else
     return m_obContentSize;
+#endif
 }
 
 void CCNode::setContentSize(const CCSize & size)
 {
     if ( ! size.equals(m_obContentSize))
     {
+#if BS_PLATFORM_ANDROID_LD
+        //by ssg
+        m_obContentSize = CCSizeMake(size.width / origin_scale, size.height / origin_scale);
+#else
         m_obContentSize = size;
-
+#endif
         m_obAnchorPointInPoints = ccp(m_obContentSize.width * m_obAnchorPoint.x, m_obContentSize.height * m_obAnchorPoint.y );
         m_bTransformDirty = m_bInverseDirty = true;
     }
@@ -904,6 +937,17 @@ void CCNode::onEnter()
     {
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeNodeEvent(this, kCCNodeOnEnter);
     }
+    
+#if BS_PLATFORM_ANDROID_LD
+    //by ssg
+    parent_scale = 1;
+    CCNode *node = getParent();
+    while (node) {
+        parent_scale *= node->origin_scale;
+        node = node->getParent();
+    }
+    m_bTransformDirty = m_bInverseDirty = true;
+#endif
 }
 
 void CCNode::onEnterTransitionDidFinish()
@@ -1136,16 +1180,27 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
         // Adjusted transform calculation for rotational skew
         if (! needsSkewMatrix && !m_obAnchorPointInPoints.equals(CCPointZero))
         {
+#if BS_PLATFORM_ANDROID_LD
+            x += cy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale + -sx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
+            y += sy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale +  cx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
+#else
             x += cy * -m_obAnchorPointInPoints.x * m_fScaleX + -sx * -m_obAnchorPointInPoints.y * m_fScaleY;
             y += sy * -m_obAnchorPointInPoints.x * m_fScaleX +  cx * -m_obAnchorPointInPoints.y * m_fScaleY;
+#endif
         }
 
 
         // Build Transform Matrix
         // Adjusted transform calculation for rotational skew
-        m_sTransform = CCAffineTransformMake( cy * m_fScaleX,  sy * m_fScaleX,
-            -sx * m_fScaleY, cx * m_fScaleY,
+#if BS_PLATFORM_ANDROID_LD
+        m_sTransform = CCAffineTransformMake( cy * m_fScaleX * origin_scale / parent_scale,  sy * m_fScaleX * origin_scale / parent_scale,
+            -sx * m_fScaleY * origin_scale / parent_scale, cx * m_fScaleY * origin_scale / parent_scale,
             x, y );
+#else
+        m_sTransform = CCAffineTransformMake( cy * m_fScaleX,  sy * m_fScaleX,
+                                             -sx * m_fScaleY, cx * m_fScaleY,
+                                             x, y );
+#endif
 
         // XXX: Try to inline skew
         // If skew is needed, apply skew and then anchor point

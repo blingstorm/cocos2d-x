@@ -211,6 +211,13 @@ protected:
     ccScriptType m_eScriptType;
 
 public:
+#if BS_PLATFORM_ANDROID_LD
+    //by ssg 整体缩放
+    float origin_scale;
+    //保存父node的缩放
+    float parent_scale;
+    void SetOriginScale(float scale);
+#endif 
     // getter & setter
     
     /** The z order of the node relative to it's "brothers": children of the same parent */

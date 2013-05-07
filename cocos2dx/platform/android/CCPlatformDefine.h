@@ -9,6 +9,7 @@ if (! (cond)) \
     char content[256]; \
     sprintf(content, "%s function:%s line:%d", __FILE__, __FUNCTION__, __LINE__);  \
     CCMessageBox(content, "Assert error"); \
+    CCLog("Assert error:%s",content);\
 }
 
 

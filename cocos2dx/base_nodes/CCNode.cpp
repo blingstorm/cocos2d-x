@@ -1147,10 +1147,14 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
 {
     if (m_bTransformDirty) 
     {
-
+#if BS_PLATFORM_ANDROID_LD
         // Translate values
+        float x = m_obPosition.x / parent_scale;
+        float y = m_obPosition.y / parent_scale;
+#else
         float x = m_obPosition.x;
         float y = m_obPosition.y;
+#endif
 
         if (m_bIgnoreAnchorPointForPosition) 
         {

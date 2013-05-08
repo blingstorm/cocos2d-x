@@ -275,6 +275,10 @@ public:
 #if CC_LABELBMFONT_DEBUG_DRAW
     virtual void draw();
 #endif // CC_LABELBMFONT_DEBUG_DRAW
+    
+#if BS_PLATFORM_ANDROID_LD
+    virtual void setParent(CCNode * var);
+#endif
 private:
     char * atlasNameFromFntFile(const char *fntFile);
     int kerningAmountForFirst(unsigned short first, unsigned short second);

@@ -457,6 +457,16 @@ CCNode * CCNode::getParent()
 void CCNode::setParent(CCNode * var)
 {
     m_pParent = var;
+#if BS_PLATFORM_ANDROID_LD
+    //by ssg
+    parent_scale = 1;
+    CCNode *node = getParent();
+    while (node) {
+        parent_scale *= node->origin_scale;
+        node = node->getParent();
+    }
+    m_bTransformDirty = m_bInverseDirty = true;
+#endif
 }
 
 /// isRelativeAnchorPoint getter
@@ -937,17 +947,6 @@ void CCNode::onEnter()
     {
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeNodeEvent(this, kCCNodeOnEnter);
     }
-    
-#if BS_PLATFORM_ANDROID_LD
-    //by ssg
-    parent_scale = 1;
-    CCNode *node = getParent();
-    while (node) {
-        parent_scale *= node->origin_scale;
-        node = node->getParent();
-    }
-    m_bTransformDirty = m_bInverseDirty = true;
-#endif
 }
 
 void CCNode::onEnterTransitionDidFinish()
@@ -1158,8 +1157,14 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
 
         if (m_bIgnoreAnchorPointForPosition) 
         {
+#if BS_PLATFORM_ANDROID_LD
+            x += m_obAnchorPointInPoints.x / parent_scale;
+            y += m_obAnchorPointInPoints.y / parent_scale;
+#else
             x += m_obAnchorPointInPoints.x;
             y += m_obAnchorPointInPoints.y;
+#endif
+           
         }
 
         // Rotation values

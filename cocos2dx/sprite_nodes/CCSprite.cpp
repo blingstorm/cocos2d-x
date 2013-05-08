@@ -138,7 +138,7 @@ CCSprite* CCSprite::createWithSpriteFrame(CCSpriteFrame *pSpriteFrame)
     {
         pobSprite->autorelease();
 #if BS_PLATFORM_ANDROID_LD
-        pobSprite->SetOriginScale(3.0f / 2.0f);
+        pobSprite->SetOriginScale(BS_LD_SCALE);
 #endif
         return pobSprite;
     }

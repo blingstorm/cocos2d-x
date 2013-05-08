@@ -255,11 +255,7 @@ void CCNode::SetOriginScale(float scale){
 /// scale setter
 void CCNode::setScale(float scale)
 {
-//#if BS_PLATFORM_ANDROID_LD
-//    m_fScaleX = m_fScaleY = scale * origin_scale / parent_scale;
-//#else
     m_fScaleX = m_fScaleY = scale;
-//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
@@ -272,11 +268,7 @@ float CCNode::getScaleX()
 /// scaleX setter
 void CCNode::setScaleX(float newScaleX)
 {
-//#if BS_PLATFORM_ANDROID_LD
-//    m_fScaleX = newScaleX * origin_scale / parent_scale;
-//#else
     m_fScaleX = newScaleX;
-//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
@@ -289,11 +281,7 @@ float CCNode::getScaleY()
 /// scaleY setter
 void CCNode::setScaleY(float newScaleY)
 {
-//#if BS_PLATFORM_ANDROID_LD
-//    m_fScaleY = newScaleY * origin_scale / parent_scale;
-//#else
     m_fScaleY = newScaleY;
-//#endif
     m_bTransformDirty = m_bInverseDirty = true;
 }
 

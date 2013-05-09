@@ -425,7 +425,7 @@ void CCNode::setContentSize(const CCSize & size)
 #else
         m_obContentSize = size;
 #endif
-        m_obAnchorPointInPoints = ccp(m_obContentSize.width * m_obAnchorPoint.x, m_obContentSize.height * m_obAnchorPoint.y );
+        m_obAnchorPointInPoints = ccp(m_obContentSize.width * m_obAnchorPoint.x , m_obContentSize.height * m_obAnchorPoint.y);
         m_bTransformDirty = m_bInverseDirty = true;
     }
 }

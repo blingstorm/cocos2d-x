@@ -359,9 +359,9 @@ void CCSprite::setTextureRect(const CCRect& rect, bool rotated, const CCSize& un
     {
         relativeOffset.y = -relativeOffset.y;
     }
-
-    m_obOffsetPosition.x = relativeOffset.x + (m_obContentSize.width - m_obRect.size.width) / 2;
-    m_obOffsetPosition.y = relativeOffset.y + (m_obContentSize.height - m_obRect.size.height) / 2;
+    //by ssg 一定要用untrimmedSize
+    m_obOffsetPosition.x = relativeOffset.x + (untrimmedSize.width - m_obRect.size.width) / 2;
+    m_obOffsetPosition.y = relativeOffset.y + (untrimmedSize.height  - m_obRect.size.height) / 2;
 
     // rendering using batch node
     if (m_pobBatchNode)
@@ -383,7 +383,7 @@ void CCSprite::setTextureRect(const CCRect& rect, bool rotated, const CCSize& un
         m_sQuad.bl.vertices = vertex3(x1, y1, 0);
         m_sQuad.br.vertices = vertex3(x2, y1, 0);
         m_sQuad.tl.vertices = vertex3(x1, y2, 0);
-        m_sQuad.tr.vertices = vertex3(x2, y2, 0);
+        m_sQuad.tr.vertices = vertex3(x2, y2, 0); 
     }
 }
 

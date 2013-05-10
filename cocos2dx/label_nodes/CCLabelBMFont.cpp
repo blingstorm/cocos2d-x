@@ -775,7 +775,6 @@ void CCLabelBMFont::setParent(CCNode * var)
     if (var) {
         this->setScale(getScale() * parent_scale);
     }
-    CCLog("CCLabelBMFont::onEnter str = %s, parent_scale = %f", getString(), parent_scale);
     
     CCSpriteBatchNode::setParent(var);
 }

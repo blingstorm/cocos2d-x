@@ -441,7 +441,7 @@ bool CCTexturePVR::unpackPVRv3Data(unsigned char* dataPointer, unsigned int data
 	bytes = dataPointer;
 	
 	m_uNumberOfMipmaps = header->numberOfMipmaps;
-	CCAssert(m_uNumberOfMipmaps < CC_PVRMIPMAP_MAX, @"TexturePVR: Maximum number of mimpaps reached. Increate the CC_PVRMIPMAP_MAX value");
+	CCAssert(m_uNumberOfMipmaps < CC_PVRMIPMAP_MAX, "TexturePVR: Maximum number of mimpaps reached. Increate the CC_PVRMIPMAP_MAX value");
     
 	for (int i = 0; i < m_uNumberOfMipmaps; i++)
     {	

@@ -50,7 +50,9 @@ THE SOFTWARE.
 #else
 #define RENDER_IN_SUBPIXEL (__ARGS__) (ceil(__ARGS__))
 #endif
-
+//by ssg
+#include "support/CCNotificationCenter.h"
+#include "CCEventType.h"
 NS_CC_BEGIN
 
 // XXX: Yes, nodes might have a sort problem once every 15 days if the game runs at 60 FPS and each frame sprites are reordered.
@@ -90,6 +92,11 @@ CCNode::CCNode(void)
 , m_uOrderOfArrival(0)
 , m_eGLServerState(ccGLServerState(0))
 , m_bReorderChildDirty(false)
+,isGrayScale(false)//by ssg
+#if BS_PLATFORM_ANDROID_LD
+,origin_scale(1)
+,parent_scale(1)
+#endif
 {
     // set default scheduler and actionManager
     CCDirector *director = CCDirector::sharedDirector();
@@ -235,6 +242,15 @@ float CCNode::getScale(void)
     CCAssert( m_fScaleX == m_fScaleY, "CCNode#scale. ScaleX != ScaleY. Don't know which one to return");
     return m_fScaleX;
 }
+
+#if BS_PLATFORM_ANDROID_LD
+void CCNode::SetOriginScale(float scale){
+    origin_scale = scale;
+//    m_fScaleX *= origin_scale / parent_scale;
+//    m_fScaleY *= origin_scale / parent_scale;
+    m_bTransformDirty = m_bInverseDirty = true;
+}
+#endif
 
 /// scale setter
 void CCNode::setScale(float scale)
@@ -392,16 +408,24 @@ void CCNode::setAnchorPoint(const CCPoint& point)
 /// contentSize getter
 CCSize CCNode::getContentSize()
 {
+#if BS_PLATFORM_ANDROID_LD
+    return CCSizeMake(m_obContentSize.width * origin_scale, m_obContentSize.height * origin_scale);
+#else
     return m_obContentSize;
+#endif
 }
 
 void CCNode::setContentSize(const CCSize & size)
 {
     if ( ! size.equals(m_obContentSize))
     {
+#if BS_PLATFORM_ANDROID_LD
+        //by ssg
+        m_obContentSize = CCSizeMake(size.width / origin_scale, size.height / origin_scale);
+#else
         m_obContentSize = size;
-
-        m_obAnchorPointInPoints = ccp(m_obContentSize.width * m_obAnchorPoint.x, m_obContentSize.height * m_obAnchorPoint.y );
+#endif
+        m_obAnchorPointInPoints = ccp(m_obContentSize.width * m_obAnchorPoint.x , m_obContentSize.height * m_obAnchorPoint.y);
         m_bTransformDirty = m_bInverseDirty = true;
     }
 }
@@ -421,6 +445,16 @@ CCNode * CCNode::getParent()
 void CCNode::setParent(CCNode * var)
 {
     m_pParent = var;
+#if BS_PLATFORM_ANDROID_LD
+    //by ssg
+    parent_scale = 1;
+    CCNode *node = getParent();
+    while (node) {
+        parent_scale *= node->origin_scale;
+        node = node->getParent();
+    }
+    m_bTransformDirty = m_bInverseDirty = true;
+#endif
 }
 
 /// isRelativeAnchorPoint getter
@@ -925,6 +959,10 @@ void CCNode::onExitTransitionDidStart()
 
 void CCNode::onExit()
 {
+    //by ssg
+    if (isGrayScale) {
+        CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
+    }
     this->pauseSchedulerAndActions();
 
     m_bRunning = false;
@@ -1096,15 +1134,25 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
 {
     if (m_bTransformDirty) 
     {
-
+#if BS_PLATFORM_ANDROID_LD
         // Translate values
+        float x = m_obPosition.x / parent_scale;
+        float y = m_obPosition.y / parent_scale;
+#else
         float x = m_obPosition.x;
         float y = m_obPosition.y;
+#endif
 
         if (m_bIgnoreAnchorPointForPosition) 
         {
+#if BS_PLATFORM_ANDROID_LD
+            x += m_obAnchorPointInPoints.x / parent_scale;
+            y += m_obAnchorPointInPoints.y / parent_scale;
+#else
             x += m_obAnchorPointInPoints.x;
             y += m_obAnchorPointInPoints.y;
+#endif
+           
         }
 
         // Rotation values
@@ -1129,16 +1177,27 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
         // Adjusted transform calculation for rotational skew
         if (! needsSkewMatrix && !m_obAnchorPointInPoints.equals(CCPointZero))
         {
+#if BS_PLATFORM_ANDROID_LD
+            x += cy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale + -sx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
+            y += sy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale +  cx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
+#else
             x += cy * -m_obAnchorPointInPoints.x * m_fScaleX + -sx * -m_obAnchorPointInPoints.y * m_fScaleY;
             y += sy * -m_obAnchorPointInPoints.x * m_fScaleX +  cx * -m_obAnchorPointInPoints.y * m_fScaleY;
+#endif
         }
 
 
         // Build Transform Matrix
         // Adjusted transform calculation for rotational skew
-        m_sTransform = CCAffineTransformMake( cy * m_fScaleX,  sy * m_fScaleX,
-            -sx * m_fScaleY, cx * m_fScaleY,
+#if BS_PLATFORM_ANDROID_LD
+        m_sTransform = CCAffineTransformMake( cy * m_fScaleX * origin_scale / parent_scale,  sy * m_fScaleX * origin_scale / parent_scale,
+            -sx * m_fScaleY * origin_scale / parent_scale, cx * m_fScaleY * origin_scale / parent_scale,
             x, y );
+#else
+        m_sTransform = CCAffineTransformMake( cy * m_fScaleX,  sy * m_fScaleX,
+                                             -sx * m_fScaleY, cx * m_fScaleY,
+                                             x, y );
+#endif
 
         // XXX: Try to inline skew
         // If skew is needed, apply skew and then anchor point
@@ -1236,7 +1295,27 @@ void CCNode::updateTransform()
     arrayMakeObjectsPerformSelector(m_pChildren, updateTransform, CCNode*);
 }
 
+void CCNode::listenReloadShader(CCObject *obj){
+    if (isGrayScale) {
+        CCGLProgram *pBWShaderProgram = CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram");
+        if (!pBWShaderProgram) {
+            pBWShaderProgram = new CCGLProgram();
+            pBWShaderProgram->autorelease();
+        }
+        
+        pBWShaderProgram->initWithVertexShaderFilename("Shaders/GrayScale.vsh", "Shaders/GrayScale.fsh");
+        pBWShaderProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
+        pBWShaderProgram->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
+        pBWShaderProgram->link();
+        pBWShaderProgram->updateUniforms();
+        CCShaderCache::sharedShaderCache()->addProgram(pBWShaderProgram, "kGrayScaleProgram");
+    }
+    this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram"));
+    this->getShaderProgram()->use();
+}
+
 void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
+    isGrayScale = pIsGrayScale;
     if (pIsGrayScale) {
         if (!CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram")) {
             CCGLProgram *pBWShaderProgram = new CCGLProgram();
@@ -1256,6 +1335,12 @@ void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
                 dynamic_cast<CCNode*>(childNode)->setIsGrayScale(pIsGrayScale, pIsAffectAllChildren);
             }
         }
+        //by ssg
+        CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
+        CCNotificationCenter::sharedNotificationCenter()->addObserver(this,
+                                                                      callfuncO_selector(CCNode::listenReloadShader),
+                                                                      EVENT_RELOAD_SHADERS,
+                                                                      NULL);
     }
     else {
         this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));

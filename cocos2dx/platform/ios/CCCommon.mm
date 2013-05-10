@@ -55,6 +55,11 @@ void CCMessageBox(const char * pszMsg, const char * pszTitle)
                                                 cancelButtonTitle: @"OK"
                                                 otherButtonTitles: nil];
     [messageBox autorelease];
+    for (UIView *view in messageBox.subviews) {
+        if([[view class] isSubclassOfClass:[UILabel class]]) {
+            ((UILabel*)view).textAlignment = UITextAlignmentLeft;
+        }
+    }
     [messageBox show];
 }
 

@@ -764,24 +764,6 @@ CCLabelBMFont *CCLabelBMFont::create(const char *str, const char *fntFile, float
     return NULL;
 }
 
-#if BS_PLATFORM_ANDROID_LD
-void CCLabelBMFont::setParent(CCNode * var)
-{
-    //restore scale
-    if (getParent()) {
-        this->setScale(getScale() / parent_scale);
-    }
-    
-    if (var) {
-        this->setScale(getScale() * parent_scale);
-    }
-    CCLog("CCLabelBMFont::onEnter str = %s, parent_scale = %f", getString(), parent_scale);
-    
-    CCSpriteBatchNode::setParent(var);
-}
-
-#endif
-
 bool CCLabelBMFont::init()
 {
     return initWithString(NULL, NULL, kCCLabelAutomaticWidth, kCCTextAlignmentLeft, CCPointZero);

@@ -67,9 +67,12 @@ typedef enum {
     kCCTexture2DPixelFormat_PVRTC4,
     //! 2-bit PVRTC-compressed texture: PVRTC2
     kCCTexture2DPixelFormat_PVRTC2,
-
+#if BS_PLATFORM_ANDROID_LD
     //! Default texture format: RGBA8888
+    kCCTexture2DPixelFormat_Default = kCCTexture2DPixelFormat_RGBA4444,
+#else
     kCCTexture2DPixelFormat_Default = kCCTexture2DPixelFormat_RGBA8888,
+#endif
 
     // backward compatibility stuff
     kTexture2DPixelFormat_RGBA8888 = kCCTexture2DPixelFormat_RGBA8888,

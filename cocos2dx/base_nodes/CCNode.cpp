@@ -1309,9 +1309,13 @@ void CCNode::listenReloadShader(CCObject *obj){
         pBWShaderProgram->link();
         pBWShaderProgram->updateUniforms();
         CCShaderCache::sharedShaderCache()->addProgram(pBWShaderProgram, "kGrayScaleProgram");
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram"));
+        this->getShaderProgram()->use();
+    } else {
+        this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
+        this->getShaderProgram()->use();
     }
-    this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram"));
-    this->getShaderProgram()->use();
+    
 }
 
 void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {

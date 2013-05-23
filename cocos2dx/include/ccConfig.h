@@ -266,4 +266,8 @@ To enable set it to a value different than 0. Disabled by default.
 #define CC_LUA_ENGINE_DEBUG 0
 #endif
 
+#ifndef CC_ENABLE_BOX2D_INTEGRATION
+#define CC_ENABLE_BOX2D_INTEGRATION 0
+#endif
+
 #endif // __CCCONFIG_H__

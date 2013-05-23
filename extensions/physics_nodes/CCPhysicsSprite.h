@@ -30,7 +30,7 @@
 #elif CC_ENABLE_BOX2D_INTEGRATION
 class b2Body;
 #else // CC_ENABLE_BOX2D_INTEGRATION
-#error "You must define either CC_ENABLE_CHIPMUNK_INTEGRATION or CC_ENABLE_BOX2D_INTEGRATION to use CCPhysicsSprite.h"
+//#error "You must define either CC_ENABLE_CHIPMUNK_INTEGRATION or CC_ENABLE_BOX2D_INTEGRATION to use CCPhysicsSprite.h"
 #endif
 
 NS_CC_EXT_BEGIN

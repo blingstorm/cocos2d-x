@@ -153,6 +153,13 @@ CCSprite* CCSprite::spriteWithSpriteFrameName(const char *pszSpriteFrameName)
 
 CCSprite* CCSprite::createWithSpriteFrameName(const char *pszSpriteFrameName)
 {
+#if BS_PLATFORM_DX
+    //电信版去掉其他GM形象
+    std::string file_name = pszSpriteFrameName;
+    if (file_name.find("GM_") == 0) {
+        file_name = "GM_jingjing.png";
+    }
+#endif
     CCSpriteFrame *pFrame = CCSpriteFrameCache::sharedSpriteFrameCache()->spriteFrameByName(pszSpriteFrameName);
 #if COCOS2D_DEBUG > 0
     char msg[256] = {0};

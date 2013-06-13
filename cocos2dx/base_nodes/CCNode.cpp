@@ -925,6 +925,14 @@ void CCNode::transform()
 
 void CCNode::onEnter()
 {
+    //by ssg
+    if (isGrayScale) {
+        CCNotificationCenter::sharedNotificationCenter()->addObserver(this,
+                                                                      callfuncO_selector(CCNode::listenReloadShader),
+                                                                      EVENT_RELOAD_SHADERS,
+                                                                      NULL);
+    }
+    
     arrayMakeObjectsPerformSelector(m_pChildren, onEnter, CCNode*);
 
     this->resumeSchedulerAndActions();
@@ -1302,7 +1310,6 @@ void CCNode::listenReloadShader(CCObject *obj){
             pBWShaderProgram = new CCGLProgram();
             pBWShaderProgram->autorelease();
         }
-        
         pBWShaderProgram->initWithVertexShaderFilename("Shaders/GrayScale.vsh", "Shaders/GrayScale.fsh");
         pBWShaderProgram->addAttribute(kCCAttributeNamePosition, kCCVertexAttrib_Position);
         pBWShaderProgram->addAttribute(kCCAttributeNameTexCoord, kCCVertexAttrib_TexCoords);
@@ -1315,7 +1322,6 @@ void CCNode::listenReloadShader(CCObject *obj){
         this->setShaderProgram(CCShaderCache::sharedShaderCache()->programForKey(kCCShader_PositionTextureColor));
         this->getShaderProgram()->use();
     }
-    
 }
 
 void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
@@ -1340,7 +1346,6 @@ void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
             }
         }
         //by ssg
-        CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
         CCNotificationCenter::sharedNotificationCenter()->addObserver(this,
                                                                       callfuncO_selector(CCNode::listenReloadShader),
                                                                       EVENT_RELOAD_SHADERS,

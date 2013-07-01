@@ -34,6 +34,11 @@ CCEGLView::CCEGLView()
 {
     m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getWidth];
     m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getHeight];
+#if BS_PLATFORM_IPAD
+    if (<#condition#>) {
+        <#statements#>
+    }
+#endif
 }
 
 CCEGLView::~CCEGLView()

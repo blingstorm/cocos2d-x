@@ -34,12 +34,12 @@ CCEGLView::CCEGLView()
 {
     m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getWidth];
     m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getHeight];
-//#if BS_PLATFORM_IPAD
-//    if (m_obScreenSize.width < m_obScreenSize.height) {
-//        m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getHeight];
-//        m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getWidth];
-//    }
-//#endif
+#if BS_PLATFORM_IPAD
+    if (m_obScreenSize.width < m_obScreenSize.height) {
+        m_obScreenSize.width = m_obDesignResolutionSize.width = [[EAGLView sharedEGLView] getHeight];
+        m_obScreenSize.height = m_obDesignResolutionSize.height = [[EAGLView sharedEGLView] getWidth];
+    }
+#endif
 }
 
 CCEGLView::~CCEGLView()

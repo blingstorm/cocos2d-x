@@ -387,6 +387,7 @@ protected:
     // image is flipped
     bool m_bFlipX;
     bool m_bFlipY;
+    std::string name;
 };
 
 

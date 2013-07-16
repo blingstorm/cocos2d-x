@@ -260,7 +260,7 @@ bool CCSprite::initWithTexture(CCTexture2D *pTexture)
 bool CCSprite::initWithFile(const char *pszFilename)
 {
     CCAssert(pszFilename != NULL, "Invalid filename for sprite");
-    
+    name = pszFilename;
     CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage(pszFilename);
     if (pTexture)
     {
@@ -278,6 +278,7 @@ bool CCSprite::initWithFile(const char *pszFilename)
 bool CCSprite::initWithFile(const char *pszFilename, const CCRect& rect)
 {
     CCAssert(pszFilename != NULL, "");
+    name = pszFilename;
     CCTexture2D *pTexture = CCTextureCache::sharedTextureCache()->addImage(pszFilename);
     if (pTexture)
     {
@@ -293,6 +294,7 @@ bool CCSprite::initWithFile(const char *pszFilename, const CCRect& rect)
 bool CCSprite::initWithSpriteFrame(CCSpriteFrame *pSpriteFrame)
 {
     CCAssert(pSpriteFrame != NULL, "");
+    name = pSpriteFrame->m_strTextureFilename;
     bool bRet = initWithTexture(pSpriteFrame->getTexture(), pSpriteFrame->getRect());
     setDisplayFrame(pSpriteFrame);
     
@@ -624,7 +626,14 @@ void CCSprite::draw(void)
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    CHECK_GL_ERROR_DEBUG();
+//    CHECK_GL_ERROR_DEBUG();
+    do {
+        GLenum __error = glGetError();
+        if(__error) {
+            CCLog("name=%s",name.c_str());
+            CCLog("OpenGL error 0x%04X in %s %s %d\n", __error, __FILE__, __FUNCTION__, __LINE__);
+        }
+    } while (false);
 
 
 #if CC_SPRITE_DEBUG_DRAW == 1

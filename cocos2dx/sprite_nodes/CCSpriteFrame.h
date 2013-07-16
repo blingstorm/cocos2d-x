@@ -162,7 +162,7 @@ public:
      */
     bool initWithTextureFilename(const char* filename, const CCRect& rect, bool rotated, const CCPoint& offset, const CCSize& originalSize);
 
-
+    std::string  m_strTextureFilename;
 protected:
     CCPoint m_obOffset;
     CCSize m_obOriginalSize;
@@ -172,7 +172,7 @@ protected:
     CCPoint m_obOffsetInPixels;
     CCSize m_obOriginalSizeInPixels;
     CCTexture2D *m_pobTexture;
-    std::string  m_strTextureFilename;
+    
 };
 
 // end of sprite_nodes group

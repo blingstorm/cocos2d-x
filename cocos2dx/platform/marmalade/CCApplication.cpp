@@ -122,7 +122,8 @@ void CCApplication::ccAccelerationUpdate()
 {
 // Accelerometer doesn't work on Marmalade X86 MacOS-X simulator
 #if !(defined(__APPLE__) && defined(I3D_ARCH_X86))
-	CCAccelerometer::sharedAccelerometer()->update((float)s3eAccelerometerGetX(), (float)s3eAccelerometerGetY(), (float)s3eAccelerometerGetZ(), s3eTimerGetMs());	// MH: Added casting to float
+	CCDirector* pDirector = CCDirector::sharedDirector();
+	pDirector->getAccelerometer()->update((float)s3eAccelerometerGetX(), (float)s3eAccelerometerGetY(), (float)s3eAccelerometerGetZ(), s3eTimerGetMs());	// MH: Added casting to float
 #endif
 }
 
@@ -177,6 +178,22 @@ ccLanguageType CCApplication::getCurrentLanguage()
 			currentLanguage = kLanguageKorean;
 			break;
 			
+		case S3E_DEVICE_LANGUAGE_JAPANESE:
+			currentLanguage = kLanguageJapanese;
+			break;
+
+		case S3E_DEVICE_LANGUAGE_HUNGARIAN:
+			currentLanguage = kLanguageHungarian;
+			break;
+            
+        case S3E_DEVICE_LANGUAGE_PORTUGUESE:
+			currentLanguage = kLanguagePortuguese;
+			break;
+            
+        case S3E_DEVICE_LANGUAGE_ARABIC:
+			currentLanguage = kLanguageArabic;
+			break;
+
 		default:
 			currentLanguage = kLanguageEnglish;
 			break;

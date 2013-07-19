@@ -48,7 +48,7 @@ THE SOFTWARE.
 #if CC_NODE_RENDER_SUBPIXEL
 #define RENDER_IN_SUBPIXEL
 #else
-#define RENDER_IN_SUBPIXEL (__ARGS__) (ceil(__ARGS__))
+#define RENDER_IN_SUBPIXEL(__ARGS__) (ceil(__ARGS__))
 #endif
 //by ssg
 #include "support/CCNotificationCenter.h"
@@ -59,44 +59,48 @@ NS_CC_BEGIN
 static int s_globalOrderOfArrival = 1;
 
 CCNode::CCNode(void)
-: m_nZOrder(0)
-, m_fVertexZ(0.0f)
-, m_fRotationX(0.0f)
+: m_fRotationX(0.0f)
 , m_fRotationY(0.0f)
 , m_fScaleX(1.0f)
 , m_fScaleY(1.0f)
+, m_fVertexZ(0.0f)
 , m_obPosition(CCPointZero)
 , m_fSkewX(0.0f)
 , m_fSkewY(0.0f)
-// children (lazy allocs)
-, m_pChildren(NULL)
-// lazy alloc
-, m_pCamera(NULL)
-, m_pGrid(NULL)
-, m_bVisible(true)
-, m_obAnchorPoint(CCPointZero)
 , m_obAnchorPointInPoints(CCPointZero)
+, m_obAnchorPoint(CCPointZero)
 , m_obContentSize(CCSizeZero)
-, m_bRunning(false)
+, m_sAdditionalTransform(CCAffineTransformMakeIdentity())
+, m_pCamera(NULL)
+// children (lazy allocs)
+// lazy alloc
+, m_pGrid(NULL)
+, m_nZOrder(0)
+, m_pChildren(NULL)
 , m_pParent(NULL)
 // "whole screen" objects. like Scenes and Layers, should set m_bIgnoreAnchorPointForPosition to false
-, m_bIgnoreAnchorPointForPosition(false)
 , m_nTag(kCCNodeTagInvalid)
 // userData is always inited as nil
 , m_pUserData(NULL)
 , m_pUserObject(NULL)
+, m_pShaderProgram(NULL)
+, m_eGLServerState(ccGLServerState(0))
+, m_uOrderOfArrival(0)
+, m_bRunning(false)
 , m_bTransformDirty(true)
 , m_bInverseDirty(true)
-, m_nScriptHandler(0)
-, m_pShaderProgram(NULL)
-, m_uOrderOfArrival(0)
-, m_eGLServerState(ccGLServerState(0))
+, m_bAdditionalTransformDirty(false)
+, m_bVisible(true)
+, m_bIgnoreAnchorPointForPosition(false)
 , m_bReorderChildDirty(false)
-,isGrayScale(false)//by ssg
-#if BS_PLATFORM_ANDROID_LD
-,origin_scale(1)
-,parent_scale(1)
+//modified by BLINGSTORM
+, m_bGrayScale(false)
+#ifdef BS_PLATFORM_ANDROID_LD
+, m_fOriginScale(1)
+, m_fParentScale(1)
 #endif
+, m_nScriptHandler(0)
+, m_nUpdateScriptHandler(0)
 {
     // set default scheduler and actionManager
     CCDirector *director = CCDirector::sharedDirector();
@@ -114,6 +118,10 @@ CCNode::~CCNode(void)
     CCLOGINFO( "cocos2d: deallocing" );
     
     unregisterScriptHandler();
+    if (m_nUpdateScriptHandler)
+    {
+        CCScriptEngineManager::sharedManager()->getScriptEngine()->removeScriptHandler(m_nUpdateScriptHandler);
+    }
 
     CC_SAFE_RELEASE(m_pActionManager);
     CC_SAFE_RELEASE(m_pScheduler);
@@ -139,6 +147,11 @@ CCNode::~CCNode(void)
 
     // children
     CC_SAFE_RELEASE(m_pChildren);
+}
+
+bool CCNode::init()
+{
+    return true;
 }
 
 float CCNode::getSkewX()
@@ -243,15 +256,6 @@ float CCNode::getScale(void)
     return m_fScaleX;
 }
 
-#if BS_PLATFORM_ANDROID_LD
-void CCNode::SetOriginScale(float scale){
-    origin_scale = scale;
-//    m_fScaleX *= origin_scale / parent_scale;
-//    m_fScaleY *= origin_scale / parent_scale;
-    m_bTransformDirty = m_bInverseDirty = true;
-}
-#endif
-
 /// scale setter
 void CCNode::setScale(float scale)
 {
@@ -286,7 +290,7 @@ void CCNode::setScaleY(float newScaleY)
 }
 
 /// position getter
-CCPoint CCNode::getPosition()
+const CCPoint& CCNode::getPosition()
 {
     return m_obPosition;
 }
@@ -298,15 +302,15 @@ void CCNode::setPosition(const CCPoint& newPosition)
     m_bTransformDirty = m_bInverseDirty = true;
 }
 
-const CCPoint& CCNode::getPositionLua(void)
-{
-    return m_obPosition;
-}
-
 void CCNode::getPosition(float* x, float* y)
 {
     *x = m_obPosition.x;
     *y = m_obPosition.y;
+}
+
+void CCNode::setPosition(float x, float y)
+{
+    setPosition(ccp(x, y));
 }
 
 float CCNode::getPositionX(void)
@@ -327,11 +331,6 @@ void CCNode::setPositionX(float x)
 void CCNode::setPositionY(float y)
 {
     setPosition(ccp(m_obPosition.x, y));
-}
-
-void CCNode::setPosition(float x, float y)
-{
-    setPosition(ccp(x, y));
 }
 
 /// children getter
@@ -384,13 +383,13 @@ void CCNode::setVisible(bool var)
     m_bVisible = var;
 }
 
-CCPoint CCNode::getAnchorPointInPoints()
+const CCPoint& CCNode::getAnchorPointInPoints()
 {
     return m_obAnchorPointInPoints;
 }
 
 /// anchorPoint getter
-CCPoint CCNode::getAnchorPoint()
+const CCPoint& CCNode::getAnchorPoint()
 {
     return m_obAnchorPoint;
 }
@@ -406,10 +405,11 @@ void CCNode::setAnchorPoint(const CCPoint& point)
 }
 
 /// contentSize getter
-CCSize CCNode::getContentSize()
+const CCSize& CCNode::getContentSize()
 {
+//modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-    return CCSizeMake(m_obContentSize.width * origin_scale, m_obContentSize.height * origin_scale);
+    return CCSizeMake(m_obContentSize.width * m_fOriginScale, m_obContentSize.height * m_fOriginScale);
 #else
     return m_obContentSize;
 #endif
@@ -419,9 +419,9 @@ void CCNode::setContentSize(const CCSize & size)
 {
     if ( ! size.equals(m_obContentSize))
     {
+        //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-        //by ssg
-        m_obContentSize = CCSizeMake(size.width / origin_scale, size.height / origin_scale);
+        m_obContentSize = CCSizeMake(size.width / m_fOriginScale, size.height / m_fOriginScale);
 #else
         m_obContentSize = size;
 #endif
@@ -445,12 +445,12 @@ CCNode * CCNode::getParent()
 void CCNode::setParent(CCNode * var)
 {
     m_pParent = var;
+    //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-    //by ssg
-    parent_scale = 1;
+    m_fParentScale = 1;
     CCNode *node = getParent();
     while (node) {
-        parent_scale *= node->origin_scale;
+        m_fParentScale *= node->m_fOriginScale;
         node = node->getParent();
     }
     m_bTransformDirty = m_bInverseDirty = true;
@@ -546,15 +546,17 @@ CCRect CCNode::boundingBox()
     return CCRectApplyAffineTransform(rect, nodeToParentTransform());
 }
 
-CCNode * CCNode::node(void)
-{
-    return CCNode::create();
-}
-
 CCNode * CCNode::create(void)
 {
 	CCNode * pRet = new CCNode();
-	pRet->autorelease();
+    if (pRet && pRet->init())
+    {
+        pRet->autorelease();
+    }
+    else
+    {
+        CC_SAFE_DELETE(pRet);
+    }
 	return pRet;
 }
 
@@ -926,7 +928,7 @@ void CCNode::transform()
 void CCNode::onEnter()
 {
     //by ssg
-    if (isGrayScale) {
+    if (m_bGrayScale) {
         CCNotificationCenter::sharedNotificationCenter()->addObserver(this,
                                                                       callfuncO_selector(CCNode::listenReloadShader),
                                                                       EVENT_RELOAD_SHADERS,
@@ -967,8 +969,8 @@ void CCNode::onExitTransitionDidStart()
 
 void CCNode::onExit()
 {
-    //by ssg
-    if (isGrayScale) {
+    //modified by BLINGSTORM
+    if (m_bGrayScale) {
         CCNotificationCenter::sharedNotificationCenter()->removeObserver(this, EVENT_RELOAD_SHADERS);
     }
     this->pauseSchedulerAndActions();
@@ -980,9 +982,7 @@ void CCNode::onExit()
         CCScriptEngineManager::sharedManager()->getScriptEngine()->executeNodeEvent(this, kCCNodeOnExit);
     }
 
-    arrayMakeObjectsPerformSelector(m_pChildren, onExit, CCNode*);
-
-    
+    arrayMakeObjectsPerformSelector(m_pChildren, onExit, CCNode*);    
 }
 
 void CCNode::registerScriptHandler(int nHandler)
@@ -1078,9 +1078,21 @@ void CCNode::scheduleUpdateWithPriority(int priority)
     m_pScheduler->scheduleUpdateForTarget(this, priority, !m_bRunning);
 }
 
+void CCNode::scheduleUpdateWithPriorityLua(int nHandler, int priority)
+{
+    unscheduleUpdate();
+    m_nUpdateScriptHandler = nHandler;
+    m_pScheduler->scheduleUpdateForTarget(this, priority, !m_bRunning);
+}
+
 void CCNode::unscheduleUpdate()
 {
     m_pScheduler->unscheduleUpdateForTarget(this);
+    if (m_nUpdateScriptHandler)
+    {
+        CCScriptEngineManager::sharedManager()->getScriptEngine()->removeScriptHandler(m_nUpdateScriptHandler);
+        m_nUpdateScriptHandler = 0;
+    }
 }
 
 void CCNode::schedule(SEL_SCHEDULE selector)
@@ -1135,17 +1147,21 @@ void CCNode::pauseSchedulerAndActions()
 // override me
 void CCNode::update(float fDelta)
 {
-    
+    if (m_nUpdateScriptHandler)
+    {
+        CCScriptEngineManager::sharedManager()->getScriptEngine()->executeSchedule(m_nUpdateScriptHandler, fDelta, this);
+    }
 }
 
 CCAffineTransform CCNode::nodeToParentTransform(void)
 {
     if (m_bTransformDirty) 
     {
+        //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
         // Translate values
-        float x = m_obPosition.x / parent_scale;
-        float y = m_obPosition.y / parent_scale;
+        float x = m_obPosition.x / m_fParentScale;
+        float y = m_obPosition.y / m_fParentScale;
 #else
         float x = m_obPosition.x;
         float y = m_obPosition.y;
@@ -1153,9 +1169,10 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
 
         if (m_bIgnoreAnchorPointForPosition) 
         {
+            //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-            x += m_obAnchorPointInPoints.x / parent_scale;
-            y += m_obAnchorPointInPoints.y / parent_scale;
+            x += m_obAnchorPointInPoints.x / m_fParentScale;
+            y += m_obAnchorPointInPoints.y / m_fParentScale;
 #else
             x += m_obAnchorPointInPoints.x;
             y += m_obAnchorPointInPoints.y;
@@ -1185,9 +1202,10 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
         // Adjusted transform calculation for rotational skew
         if (! needsSkewMatrix && !m_obAnchorPointInPoints.equals(CCPointZero))
         {
+            //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-            x += cy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale + -sx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
-            y += sy * -m_obAnchorPointInPoints.x * m_fScaleX * origin_scale / parent_scale +  cx * -m_obAnchorPointInPoints.y * m_fScaleY * origin_scale / parent_scale;
+            x += cy * -m_obAnchorPointInPoints.x * m_fScaleX * m_fOriginScale / m_fParentScale + -sx * -m_obAnchorPointInPoints.y * m_fScaleY * m_fOriginScale / m_fParentScale;
+            y += sy * -m_obAnchorPointInPoints.x * m_fScaleX * m_fOriginScale / m_fParentScale +  cx * -m_obAnchorPointInPoints.y * m_fScaleY * m_fOriginScale / m_fParentScale;
 #else
             x += cy * -m_obAnchorPointInPoints.x * m_fScaleX + -sx * -m_obAnchorPointInPoints.y * m_fScaleY;
             y += sy * -m_obAnchorPointInPoints.x * m_fScaleX +  cx * -m_obAnchorPointInPoints.y * m_fScaleY;
@@ -1197,9 +1215,10 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
 
         // Build Transform Matrix
         // Adjusted transform calculation for rotational skew
+        //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-        m_sTransform = CCAffineTransformMake( cy * m_fScaleX * origin_scale / parent_scale,  sy * m_fScaleX * origin_scale / parent_scale,
-            -sx * m_fScaleY * origin_scale / parent_scale, cx * m_fScaleY * origin_scale / parent_scale,
+        m_sTransform = CCAffineTransformMake( cy * m_fScaleX * m_fOriginScale / m_fParentScale,  sy * m_fScaleX * m_fOriginScale / m_fParentScale,
+            -sx * m_fScaleY * m_fOriginScale / m_fParentScale, cx * m_fScaleY * m_fOriginScale / m_fParentScale,
             x, y );
 #else
         m_sTransform = CCAffineTransformMake( cy * m_fScaleX,  sy * m_fScaleX,
@@ -1222,11 +1241,24 @@ CCAffineTransform CCNode::nodeToParentTransform(void)
                 m_sTransform = CCAffineTransformTranslate(m_sTransform, -m_obAnchorPointInPoints.x, -m_obAnchorPointInPoints.y);
             }
         }
+        
+        if (m_bAdditionalTransformDirty)
+        {
+            m_sTransform = CCAffineTransformConcat(m_sTransform, m_sAdditionalTransform);
+            m_bAdditionalTransformDirty = false;
+        }
 
         m_bTransformDirty = false;
     }
 
     return m_sTransform;
+}
+
+void CCNode::setAdditionalTransform(const CCAffineTransform& additionalTransform)
+{
+    m_sAdditionalTransform = additionalTransform;
+    m_bTransformDirty = true;
+    m_bAdditionalTransformDirty = true;
 }
 
 CCAffineTransform CCNode::parentToNodeTransform(void)
@@ -1296,15 +1328,149 @@ CCPoint CCNode::convertTouchToNodeSpaceAR(CCTouch *touch)
     return this->convertToNodeSpaceAR(point);
 }
 
-// MARMALADE ADDED
 void CCNode::updateTransform()
 {
     // Recursively iterate over children
     arrayMakeObjectsPerformSelector(m_pChildren, updateTransform, CCNode*);
 }
 
+// CCNodeRGBA
+CCNodeRGBA::CCNodeRGBA()
+: _displayedOpacity(255)
+, _realOpacity(255)
+, _displayedColor(ccWHITE)
+, _realColor(ccWHITE)
+, _cascadeColorEnabled(false)
+, _cascadeOpacityEnabled(false)
+{}
+
+CCNodeRGBA::~CCNodeRGBA() {}
+
+bool CCNodeRGBA::init()
+{
+    if (CCNode::init())
+    {
+        _displayedOpacity = _realOpacity = 255;
+        _displayedColor = _realColor = ccWHITE;
+        _cascadeOpacityEnabled = _cascadeColorEnabled = false;
+        return true;
+    }
+    return false;
+}
+
+GLubyte CCNodeRGBA::getOpacity(void)
+{
+	return _realOpacity;
+}
+
+GLubyte CCNodeRGBA::getDisplayedOpacity(void)
+{
+	return _displayedOpacity;
+}
+
+void CCNodeRGBA::setOpacity(GLubyte opacity)
+{
+    _displayedOpacity = _realOpacity = opacity;
+    
+	if (_cascadeOpacityEnabled)
+    {
+		GLubyte parentOpacity = 255;
+        CCRGBAProtocol* pParent = dynamic_cast<CCRGBAProtocol*>(m_pParent);
+        if (pParent && pParent->isCascadeOpacityEnabled())
+        {
+            parentOpacity = pParent->getDisplayedOpacity();
+        }
+        this->updateDisplayedOpacity(parentOpacity);
+	}
+}
+
+void CCNodeRGBA::updateDisplayedOpacity(GLubyte parentOpacity)
+{
+	_displayedOpacity = _realOpacity * parentOpacity/255.0;
+	
+    if (_cascadeOpacityEnabled)
+    {
+        CCObject* pObj;
+        CCARRAY_FOREACH(m_pChildren, pObj)
+        {
+            CCRGBAProtocol* item = dynamic_cast<CCRGBAProtocol*>(pObj);
+            if (item)
+            {
+                item->updateDisplayedOpacity(_displayedOpacity);
+            }
+        }
+    }
+}
+
+bool CCNodeRGBA::isCascadeOpacityEnabled(void)
+{
+    return _cascadeOpacityEnabled;
+}
+
+void CCNodeRGBA::setCascadeOpacityEnabled(bool cascadeOpacityEnabled)
+{
+    _cascadeOpacityEnabled = cascadeOpacityEnabled;
+}
+
+const ccColor3B& CCNodeRGBA::getColor(void)
+{
+	return _realColor;
+}
+
+const ccColor3B& CCNodeRGBA::getDisplayedColor()
+{
+	return _displayedColor;
+}
+
+void CCNodeRGBA::setColor(const ccColor3B& color)
+{
+	_displayedColor = _realColor = color;
+	
+	if (_cascadeColorEnabled)
+    {
+		ccColor3B parentColor = ccWHITE;
+        CCRGBAProtocol *parent = dynamic_cast<CCRGBAProtocol*>(m_pParent);
+		if (parent && parent->isCascadeColorEnabled())
+        {
+            parentColor = parent->getDisplayedColor(); 
+        }
+        
+        updateDisplayedColor(parentColor);
+	}
+}
+
+void CCNodeRGBA::updateDisplayedColor(const ccColor3B& parentColor)
+{
+	_displayedColor.r = _realColor.r * parentColor.r/255.0;
+	_displayedColor.g = _realColor.g * parentColor.g/255.0;
+	_displayedColor.b = _realColor.b * parentColor.b/255.0;
+    
+    if (_cascadeColorEnabled)
+    {
+        CCObject *obj = NULL;
+        CCARRAY_FOREACH(m_pChildren, obj)
+        {
+            CCRGBAProtocol *item = dynamic_cast<CCRGBAProtocol*>(obj);
+            if (item)
+            {
+                item->updateDisplayedColor(_displayedColor);
+            }
+        }
+    }
+}
+
+bool CCNodeRGBA::isCascadeColorEnabled(void)
+{
+    return _cascadeColorEnabled;
+}
+
+void CCNodeRGBA::setCascadeColorEnabled(bool cascadeColorEnabled)
+{
+    _cascadeColorEnabled = cascadeColorEnabled;
+}
+
 void CCNode::listenReloadShader(CCObject *obj){
-    if (isGrayScale) {
+    if (m_bGrayScale) {
         CCGLProgram *pBWShaderProgram = CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram");
         if (!pBWShaderProgram) {
             pBWShaderProgram = new CCGLProgram();
@@ -1325,8 +1491,8 @@ void CCNode::listenReloadShader(CCObject *obj){
 }
 
 void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
-    isGrayScale = pIsGrayScale;
-    if (pIsGrayScale) {
+    m_bGrayScale = pIsGrayScale;
+    if (m_bGrayScale) {
         if (!CCShaderCache::sharedShaderCache()->programForKey("kGrayScaleProgram")) {
             CCGLProgram *pBWShaderProgram = new CCGLProgram();
             pBWShaderProgram->autorelease();
@@ -1362,5 +1528,12 @@ void CCNode::setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren) {
     }
 }
 
+//modified by BLINGSTORM
+#if BS_PLATFORM_ANDROID_LD
+void CCNode::SetOriginScale(float scale){
+    m_fOriginScale = scale;
+    m_bTransformDirty = m_bInverseDirty = true;
+}
+#endif
 
 NS_CC_END

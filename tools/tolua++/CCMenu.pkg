@@ -1,23 +1,21 @@
-/*
-typedef enum
+enum
 {
     kCCMenuStateWaiting,
     kCCMenuStateTrackingTouch
-} tCCMenuState;
+};
 
 enum {
-    //* priority used by the menu for the event handler
-    kCCMenuHandlerPriority = -128,
+    kCCMenuHandlerPriority = -128
 };
-*/
-class CCMenu : public CCLayer
+
+class CCMenu : public CCLayerRGBA
 {
     void alignItemsVertically();
     void alignItemsVerticallyWithPadding(float padding);
     void alignItemsHorizontally();
     void alignItemsHorizontallyWithPadding(float padding);
-    void alignItemsInColumns(unsigned int columns, va_list args);
-    void alignItemsInRows(unsigned int rows, va_list args);
+    // void alignItemsInColumns(unsigned int columns, va_list args);
+    // void alignItemsInRows(unsigned int rows, va_list args);
 
 	setHandlerPriority(int newPriority);
 

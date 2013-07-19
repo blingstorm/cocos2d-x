@@ -1,4 +1,3 @@
-
 typedef enum LanguageType
 {
     kLanguageEnglish = 0,
@@ -7,7 +6,12 @@ typedef enum LanguageType
     kLanguageItalian,
     kLanguageGerman,
     kLanguageSpanish,
-    kLanguageRussian
+    kLanguageRussian,
+    kLanguageKorean,
+    kLanguageJapanese,
+    kLanguageHungarian,
+    kLanguagePortuguese,
+    kLanguageArabic
 } ccLanguageType;
 
 enum TargetPlatform

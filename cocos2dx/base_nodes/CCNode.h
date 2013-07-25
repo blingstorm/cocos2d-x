@@ -1388,6 +1388,7 @@ protected:
 public:
 #if BS_PLATFORM_ANDROID_LD
     void SetOriginScale(float scale);
+    float GetOriginScale(){return m_fOriginScale;}
 #endif
     void listenReloadShader(CCObject *obj);
     void setIsGrayScale(bool pIsGrayScale, bool pIsAffectAllChildren);

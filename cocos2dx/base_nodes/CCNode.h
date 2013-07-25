@@ -1384,6 +1384,7 @@ protected:
     float m_fOriginScale;
     //保存父node的缩放
     float m_fParentScale;
+    CCSize m_fScaleContentSize;
 #endif
 public:
 #if BS_PLATFORM_ANDROID_LD

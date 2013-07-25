@@ -409,7 +409,9 @@ const CCSize& CCNode::getContentSize()
 {
 //modified by BLINGSTORM
 #if BS_PLATFORM_ANDROID_LD
-    return CCSizeMake(m_obContentSize.width * m_fOriginScale, m_obContentSize.height * m_fOriginScale);
+    m_fScaleContentSize.width = m_obContentSize.width * m_fOriginScale;
+    m_fScaleContentSize.height = m_obContentSize.height * m_fOriginScale;
+    return m_fScaleContentSize;
 #else
     return m_obContentSize;
 #endif

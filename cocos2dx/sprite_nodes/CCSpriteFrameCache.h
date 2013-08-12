@@ -136,14 +136,14 @@ public:
 
     /** Purges the cache. It releases all the Sprite Frames and the retained instance. */
     static void purgeSharedSpriteFrameCache(void);
-
+    std::set<std::string>*  m_pLoadedFileNames;
 private:
     // MARMALADE: Made this protected not private, as deriving from this class is pretty useful
 //    CCSpriteFrameCache(void) : m_pSpriteFrames(NULL), m_pSpriteFramesAliases(NULL){}
 protected:
     CCDictionary* m_pSpriteFrames;
     CCDictionary* m_pSpriteFramesAliases;
-    std::set<std::string>*  m_pLoadedFileNames;
+    
 };
 
 // end of sprite_nodes group

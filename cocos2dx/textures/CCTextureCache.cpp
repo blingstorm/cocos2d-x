@@ -846,7 +846,7 @@ void VolatileTexture::Reload(VolatileTexture *vt){
 
 //by ssg
 void VolatileTexture::reloadingAllTexture(){
-    //    CCLog("reload all texture");
+    CCLog("reload all texture");
     std::list<VolatileTexture *>::iterator iter = textures.begin();
     
     int count = 0;
@@ -860,7 +860,7 @@ void VolatileTexture::reloadingAllTexture(){
     {
         VolatileTexture *vt = *iter++;
         start_index ++;
-        //        CCLog("VolatileTexture::reloadingAllTexture %d",start_index);
+        CCLog("VolatileTexture::reloadingAllTexture %d",start_index);
         //by ssg
         VolatileTexture::Reload(vt);
         vt->texture->setTexParameters(&vt->m_texParams);
@@ -868,7 +868,7 @@ void VolatileTexture::reloadingAllTexture(){
             break;
         }
     }
-    //    CCLog("reloadingAllTexture() reload is index=%d，size=%d",start_index,textures.size());
+    CCLog("reloadingAllTexture() reload is index=%d，size=%d",start_index,textures.size());
     if (iter == textures.end() || textures.size() == 0) {
         CCLog("reloadingAllTexture() reload is ok index=%d",start_index);
         isReloading = false;

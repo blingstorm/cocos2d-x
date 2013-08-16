@@ -216,6 +216,7 @@ void CCDirector::setGLDefaultValues(void)
 void CCDirector::drawScene(void)
 {
     if(m_pLoadingScene){//by ssg
+        CCLog("this is aaaa");
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         kmGLPushMatrix();
         m_pLoadingScene->visit();

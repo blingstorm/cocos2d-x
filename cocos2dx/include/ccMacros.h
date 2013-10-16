@@ -22,6 +22,11 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
+ 
+ 
+ 这是CCAssert中得代码
+ cc_assert_script_compatible(!!(cond), (msg));   \
+ CC_ASSERT(cond, msg);
 ****************************************************************************/
 
 #ifndef __CCMACROS_H__
@@ -40,8 +45,7 @@ THE SOFTWARE.
 extern void CC_DLL cc_assert_script_compatible(bool cond, const char *msg);
 #define CCAssert(cond, msg)                             \
     {                                                   \
-        cc_assert_script_compatible(!!(cond), (msg));   \
-        CC_ASSERT(cond, msg);                            \
+                         \
     }
 #else
 #define CCAssert(cond, msg)
